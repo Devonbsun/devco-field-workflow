@@ -1,9 +1,68 @@
 #!/data/data/com.termux/files/usr/bin/bash
 
-echo ""
+ROOT="$HOME/DEVCO_FIELD"
+JOBS="$ROOT/JOBS"
+
+echo
 echo "======================================"
 echo "   DEVCO POLE TRANSFER FIELD MODE"
 echo "======================================"
-echo ""
+echo
+echo "Available jobs:"
+echo
 
-python ~/pole_workflow.py
+mapfile -t jobdirs < <(find "$JOBS" -mindepth 1 -maxdepth 1 -type d | sort)
+
+if [ ${#jobdirs[@]} -eq 0 ]; then
+    echo "No jobs found in $JOBS"
+    exit 1
+fi
+
+for i in "${!jobdirs[@]}"; do
+    printf "%d) %s\n" "$((i+1))" "$(basename "${jobdirs[$i]}")"
+done
+
+echo
+read -p "Select job #: " choice
+
+if ! [[ "$choice" =~ ^[0-9]+$ ]] ||
+   [ "$choice" -lt 1 ] ||
+   [ "$choice" -gt "${#jobdirs[@]}" ]; then
+    echo "Invalid job selection."
+    exit 1
+fi
+
+JOB="${jobdirs[$((choice-1))]}"
+JOB_ID="$(basename "$JOB")"
+
+echo
+echo "Selected job: $JOB_ID"
+echo
+
+if [ -d "$JOB/3_JU_FILES" ]; then
+    JU_ROOT="$JOB/3_JU_FILES"
+elif [ -d "$JOB/Des_Moines_59_Transfer_Files" ]; then
+    JU_ROOT="$JOB/Des_Moines_59_Transfer_Files"
+else
+    echo "ERROR: No JU folder structure found for $JOB_ID"
+    exit 1
+fi
+
+export DEVCO_JOB="$JOB"
+export DEVCO_JOB_ID="$JOB_ID"
+export DEVCO_JU_ROOT="$JU_ROOT"
+
+echo "JU data:"
+echo "$JU_ROOT"
+echo
+
+# Protect the completed legacy Des Moines job from the new multi-job engine.
+if [ ! -d "$JOB/3_JU_FILES" ]; then
+    echo "This is a legacy job and is protected from the new field engine."
+    echo "Use SYSTEM/field_legacy if you intentionally need the old workflow."
+    exit 0
+fi
+
+echo "Starting field workflow..."
+echo
+exec python "$ROOT/SYSTEM/field_workflow.py"
