@@ -4,6 +4,8 @@ import time
 import re
 import math
 import os
+import zipfile
+import xml.etree.ElementTree as ET
 from pathlib import Path
 
 PHOTOS = Path("/storage/emulated/0/Pictures/Solocator")
@@ -242,6 +244,73 @@ def save_master_record(pole, photos, selected, note):
         ])
 
 
+def route_order():
+    route_file = JOB / "2_ROUTE" / f"{JOB_ID}_ROUTE.xlsx"
+    if not route_file.exists():
+        return []
+    try:
+        with zipfile.ZipFile(route_file) as z:
+            root = ET.fromstring(z.read("xl/worksheets/sheet1.xml"))
+        ns = {"x": "http://schemas.openxmlformats.org/spreadsheetml/2006/main"}
+        rows = []
+        for row in root.findall(".//x:sheetData/x:row", ns)[1:]:
+            vals = {}
+            for cell in row.findall("x:c", ns):
+                ref = cell.attrib.get("r", "")
+                col = re.match(r"[A-Z]+", ref)
+                if not col:
+                    continue
+                if cell.attrib.get("t") == "inlineStr":
+                    node = cell.find(".//x:t", ns)
+                else:
+                    node = cell.find("x:v", ns)
+                vals[col.group()] = node.text if node is not None else ""
+            if vals.get("B") and vals.get("D") and vals.get("E"):
+                rows.append({"ju": vals["B"], "lat": float(vals["D"]), "lon": float(vals["E"]), "address": vals.get("C", "")})
+        return rows
+    except Exception as exc:
+        print(f"Route read failed: {exc}")
+        return []
+
+
+def ju_is_complete(ju):
+    for info in WORK.rglob("transfer_info.txt"):
+        try:
+            text = info.read_text(errors="ignore")
+        except Exception:
+            continue
+        m = re.search(r"JU Record:\s*(\d+)", text)
+        if m and m.group(1) == str(ju):
+            return (info.parent / "BILLING_AND_NOTES.txt").exists()
+    return False
+
+
+def next_unfinished_after(current_ju):
+    route = route_order()
+    if not route:
+        return None
+    start = next((i + 1 for i, item in enumerate(route) if item["ju"] == str(current_ju)), 0)
+    for offset in range(len(route)):
+        item = route[(start + offset) % len(route)]
+        if not ju_is_complete(item["ju"]):
+            return item
+    return None
+
+
+def navigate_next(current_ju):
+    nxt = next_unfinished_after(current_ju)
+    if not nxt:
+        print("No unfinished JUs remain in the route.")
+        return
+    url = f"https://www.google.com/maps/dir/?api=1&destination={nxt['lat']},{nxt['lon']}&travelmode=driving"
+    print(f"NEXT JU: {nxt['ju']} - {nxt['address']}")
+    try:
+        subprocess.Popen(["termux-open-url", url])
+        print("Opening Google Maps navigation...")
+    except Exception as exc:
+        print(f"Could not open navigation: {exc}")
+
+
 def billing_prompt(pole, photos, input_fn=input):
 
     print()
@@ -398,6 +467,7 @@ def billing_prompt(pole, photos, input_fn=input):
         )
 
     save_master_record(pole, photos, selected, note)
+    navigate_next(pole["ju"])
 
     print()
     print("SAVED TO SELECTED JOB")
