@@ -72,7 +72,9 @@ def route40(job):
 def map_page():
     js=jobs(); selected=active_job or (js[0] if js else "")
     points=ju_points(selected) if selected else []
+    route=route40(selected) if selected else []
     data=json.dumps(points).replace("</","<\\/")
+    route_data=json.dumps(route).replace("</","<\\/")
     return f"""<!doctype html><html><head><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>DEVCO Map</title>
 <link rel="stylesheet" href="/static/leaflet.css">
