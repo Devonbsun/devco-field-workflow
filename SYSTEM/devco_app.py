@@ -55,7 +55,27 @@ def active_card():
     if not match: return ''
     nav=f'https://www.google.com/maps/dir/?api=1&destination={match["lat"]},{match["lon"]}&travelmode=driving'
     state='COMPLETED' if match["done"] else 'NOT COMPLETE'
-    return f'<div class="card"><div class="muted">ACTIVE JU</div><div class="big">{html.escape(match["ju"])}</div><p>{html.escape(match["address"])}</p><p><b>{state}</b></p><a href="{nav}" style="display:block;text-align:center;background:#36c275;color:#07140d;text-decoration:none;font-weight:800;padding:14px;border-radius:12px">Navigate to Active JU</a></div>'
+    return f'<div class="card"><div class="muted">ACTIVE JU</div><div class="big">{html.escape(match["ju"])}</div><p>{html.escape(match["address"])}</p><p><b>{state}</b></p><a href="/hone" style="display:block;text-align:center;background:#168cff;color:white;text-decoration:none;font-weight:800;padding:16px;border-radius:12px;margin-bottom:9px">🎯 Hone In to JU</a><a href="{nav}" style="display:block;text-align:center;background:#36c275;color:#07140d;text-decoration:none;font-weight:800;padding:14px;border-radius:12px">Road Navigation</a></div>'
+
+def hone_page():
+    if not active_job or not active_ju:
+        return '<html><body style="font-family:system-ui;background:#0b1118;color:white;padding:25px"><h2>No active JU</h2><a style="color:#6cf" href="/map">Select one from the map</a></body></html>'
+    q=next((x for x in ju_points(active_job) if x["ju"]==active_ju),None)
+    if not q: return '<html><body>JU not found.</body></html>'
+    data=json.dumps(q)
+    return f"""<!doctype html><html><head><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1"><title>Hone to JU</title>
+<style>html,body{{margin:0;height:100%;background:#071019;color:white;font-family:system-ui;overflow:hidden}}#top{{position:absolute;z-index:2;top:0;left:0;right:0;padding:14px;text-align:center;background:#071019dd}}#ju{{font-size:18px;font-weight:800}}#dist{{font-size:54px;font-weight:900;line-height:1}}#accuracy{{color:#9fb0c0;font-size:13px}}#stage{{height:100%;display:flex;align-items:center;justify-content:center;flex-direction:column}}#arrow{{font-size:190px;line-height:.8;transform-origin:50% 55%;filter:drop-shadow(0 0 10px #168cff)}}#bearing{{font-size:20px;font-weight:700;margin-top:20px}}#msg{{font-size:18px;text-align:center;padding:12px;max-width:90%}}#back{{position:absolute;z-index:3;left:12px;top:12px;color:white;text-decoration:none;background:#26384b;padding:9px 12px;border-radius:10px}}.hit #arrow{{font-size:120px}}.hit #dist{{font-size:65px}}</style></head>
+<body><a id="back" href="/">←</a><div id="top"><div id="ju">JU {html.escape(q["ju"])} · {html.escape(q["address"])}</div><div id="dist">-- m</div><div id="accuracy">Waiting for GPS…</div></div>
+<div id="stage"><div id="arrow">⬆</div><div id="bearing">Move toward the arrow</div><div id="msg">Allow precise location. Hold the phone flat and walk a few steps so direction can stabilize.</div></div>
+<script>
+const target={data}; let heading=null,last=null;
+function rad(x){{return x*Math.PI/180}} function deg(x){{return x*180/Math.PI}}
+function distance(a,b,c,d){{let R=6371000,p1=rad(a),p2=rad(c),dp=rad(c-a),dl=rad(d-b);let x=Math.sin(dp/2)**2+Math.cos(p1)*Math.cos(p2)*Math.sin(dl/2)**2;return 2*R*Math.atan2(Math.sqrt(x),Math.sqrt(1-x));}}
+function bearing(a,b,c,d){{let p1=rad(a),p2=rad(c),dl=rad(d-b);return (deg(Math.atan2(Math.sin(dl)*Math.cos(p2),Math.cos(p1)*Math.sin(p2)-Math.sin(p1)*Math.cos(p2)*Math.cos(dl)))+360)%360;}}
+function render(pos){{let lat=pos.coords.latitude,lon=pos.coords.longitude,d=distance(lat,lon,target.lat,target.lon),br=bearing(lat,lon,target.lat,target.lon);document.getElementById('dist').textContent=d<100?d.toFixed(1)+' m':Math.round(d)+' m';document.getElementById('accuracy').textContent='GPS accuracy ±'+Math.round(pos.coords.accuracy)+' m';let h=heading;if(h==null && pos.coords.heading!=null && !isNaN(pos.coords.heading))h=pos.coords.heading;if(h==null && last) h=bearing(last[0],last[1],lat,lon);if(h!=null){{let turn=((br-h+540)%360)-180;document.getElementById('arrow').style.transform='rotate('+turn+'deg)';document.getElementById('bearing').textContent=Math.abs(turn)<15?'Straight ahead':(turn>0?'Turn right':'Turn left');}} last=[lat,lon];if(d<=3){{document.body.classList.add('hit');document.getElementById('arrow').textContent='◎';document.getElementById('arrow').style.transform='none';document.getElementById('bearing').textContent='TARGET — WITHIN 3 METERS';document.getElementById('msg').textContent='You are at the JU coordinate. GPS accuracy can be larger than the remaining distance.';}}}}
+if(window.DeviceOrientationEvent) window.addEventListener('deviceorientationabsolute',e=>{{if(e.alpha!=null)heading=(360-e.alpha)%360;}},true);
+navigator.geolocation.watchPosition(render,e=>{{document.getElementById('msg').textContent='Location unavailable: '+e.message;}},{{enableHighAccuracy:true,maximumAge:0,timeout:10000}});
+</script></body></html>"""
 
 def page(msg=""):
     js=jobs(); selected=active_job or (js[0] if js else "")
@@ -83,6 +103,8 @@ class H(BaseHTTPRequestHandler):
     def do_GET(self):
         if urlparse(self.path).path == "/map":
             b=map_page().encode(); self.send_response(200); self.send_header("Content-Type","text/html; charset=utf-8"); self.send_header("Content-Length",str(len(b))); self.end_headers(); self.wfile.write(b)
+        elif urlparse(self.path).path == "/hone":
+            b=hone_page().encode(); self.send_response(200); self.send_header("Content-Type","text/html; charset=utf-8"); self.send_header("Content-Length",str(len(b))); self.end_headers(); self.wfile.write(b)
         else: self.send()
     def do_POST(self):
         global active_job, field_proc, active_ju
