@@ -34,12 +34,16 @@ def map_page():
     data=json.dumps(points).replace("</","<\\/")
     return f"""<!doctype html><html><head><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>DEVCO Map</title>
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<link rel="stylesheet" href="/static/leaflet.css">
 <style>html,body,#map{{height:100%;margin:0}}body{{font-family:system-ui}}#bar{{position:absolute;z-index:1000;top:10px;left:10px;right:10px;background:#111d;padding:10px;border-radius:14px;color:white;display:flex;gap:8px;align-items:center}}#bar a{{color:white;text-decoration:none;background:#26384b;padding:10px 12px;border-radius:10px}}#bar span{{flex:1}}.nav,.activate{{display:inline-block;padding:9px 12px;background:#36c275;color:#07140d!important;border-radius:9px;text-decoration:none;font-weight:700;border:0;margin:3px}}.activate{{background:#168cff;color:white!important}}</style></head>
-<body><div id="bar"><a href="/">← Dashboard</a><span><b>{html.escape(selected)}</b> · {len(points)} JUs</span></div><div id="map"></div>
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script><script>
+<body><div id="bar"><a href="/">← Dashboard</a><span><b>{html.escape(selected)}</b> · {len(points)} JUs · <b>GPS/OFFLINE READY</b></span></div><div id="map"></div>
+<script src="/static/leaflet.js"></script><script>
 const pts={data}; const map=L.map('map');
-L.tileLayer('https://{{s}}.tile.openstreetmap.org/{{z}}/{{x}}/{{y}}.png',{{maxZoom:20,attribution:'© OpenStreetMap'}}).addTo(map);
+const tiles=L.tileLayer('https://{{s}}.tile.openstreetmap.org/{{z}}/{{x}}/{{y}}.png',{{maxZoom:20,attribution:'© OpenStreetMap'}});
+if(navigator.onLine) tiles.addTo(map);
+map.getContainer().style.background='#18232e';
+window.addEventListener('online',()=>{{if(!map.hasLayer(tiles))tiles.addTo(map)}});
+window.addEventListener('offline',()=>{{if(map.hasLayer(tiles))map.removeLayer(tiles)}});
 const bounds=[];
 pts.forEach(p=>{{let m=L.circleMarker([p.lat,p.lon],{{radius:p.done?5:7,color:p.done?'#6b7b88':'#e53935',fillColor:p.done?'#6b7b88':'#ff3b30',fillOpacity:.9,weight:2}}).addTo(map);
 let nav='https://www.google.com/maps/dir/?api=1&destination='+p.lat+','+p.lon+'&travelmode=driving';
@@ -101,7 +105,12 @@ class H(BaseHTTPRequestHandler):
     def send(self,msg=''):
         b=page(msg).encode(); self.send_response(200); self.send_header('Content-Type','text/html; charset=utf-8'); self.send_header('Content-Length',str(len(b))); self.end_headers(); self.wfile.write(b)
     def do_GET(self):
-        if urlparse(self.path).path == "/map":
+        path=urlparse(self.path).path
+        if path in ("/static/leaflet.js","/static/leaflet.css"):
+            f=ROOT/"SYSTEM"/"vendor"/path.rsplit("/",1)[-1]
+            if f.exists():
+                b=f.read_bytes(); self.send_response(200); self.send_header("Content-Type","application/javascript" if path.endswith(".js") else "text/css"); self.send_header("Content-Length",str(len(b))); self.end_headers(); self.wfile.write(b); return
+        if path == "/map":
             b=map_page().encode(); self.send_response(200); self.send_header("Content-Type","text/html; charset=utf-8"); self.send_header("Content-Length",str(len(b))); self.end_headers(); self.wfile.write(b)
         elif urlparse(self.path).path == "/hone":
             b=hone_page().encode(); self.send_response(200); self.send_header("Content-Type","text/html; charset=utf-8"); self.send_header("Content-Length",str(len(b))); self.end_headers(); self.wfile.write(b)
