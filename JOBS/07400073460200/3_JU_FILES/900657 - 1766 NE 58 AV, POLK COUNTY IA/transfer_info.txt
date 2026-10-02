@@ -1,0 +1,10 @@
+Job Number: 07400073460200
+JU Record: 900657
+Address: 1766 NE 58 AV, POLK COUNTY IA
+Latitude: 41.66608611
+Longitude: -93.59133113
+Condition Code: CLR40POLE
+Condition Description: < 40" AT POLE
+Inspection Condition: 2554604
+Status: NEW
+Complete: NO

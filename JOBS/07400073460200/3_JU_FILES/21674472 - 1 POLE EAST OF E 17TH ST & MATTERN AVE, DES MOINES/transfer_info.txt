@@ -1,0 +1,10 @@
+Job Number: 07400073460200
+JU Record: 21674472
+Address: 1 POLE EAST OF E 17TH ST & MATTERN AVE, DES MOINES
+Latitude: 41.61097725
+Longitude: -93.59093967
+Condition Code: CLRGRND
+Condition Description: Attach to pole -- hanging by rope.
+Inspection Condition: 1987245
+Status: NEW
+Complete: NO

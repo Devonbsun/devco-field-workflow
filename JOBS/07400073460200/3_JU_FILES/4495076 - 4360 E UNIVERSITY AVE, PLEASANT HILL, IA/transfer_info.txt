@@ -1,0 +1,10 @@
+Job Number: 07400073460200
+JU Record: 4495076
+Address: 4360 E UNIVERSITY AVE, PLEASANT HILL, IA
+Latitude: 41.60081781
+Longitude: -93.52928345
+Condition Code: GUYSLACK
+Condition Description: GUYSLACK
+Inspection Condition: 2196911
+Status: NEW
+Complete: NO

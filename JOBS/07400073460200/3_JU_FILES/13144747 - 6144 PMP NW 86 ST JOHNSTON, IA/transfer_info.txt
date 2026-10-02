@@ -1,0 +1,10 @@
+Job Number: 07400073460200
+JU Record: 13144747
+Address: 6144 PMP NW 86 ST JOHNSTON, IA
+Latitude: 41.67049783
+Longitude: -93.7366426
+Condition Code: CLR12SVCDROP
+Condition Description: LOWER ATTACHMENT FOR SEPARATION<br/>Feature Type:	POLE<br/>CLR12SVCDROP:	CLR12SVCDROP - < 12" AT SE
+Inspection Condition: 2163184
+Status: NEW
+Complete: NO

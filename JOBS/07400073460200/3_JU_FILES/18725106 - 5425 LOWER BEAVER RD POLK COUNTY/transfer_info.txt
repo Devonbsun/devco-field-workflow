@@ -1,0 +1,10 @@
+Job Number: 07400073460200
+JU Record: 18725106
+Address: 5425 LOWER BEAVER RD POLK COUNTY
+Latitude: 41.64620664
+Longitude: -93.67194163
+Condition Code: CLR40POLE
+Condition Description: CLR40POLE
+Inspection Condition: 2196013
+Status: NEW
+Complete: NO

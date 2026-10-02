@@ -1,0 +1,32 @@
+JU Record: 2283354
+Address: 1508 Pleasant St, Des Moines, IA
+GPS navigation: https://www.google.com/maps/dir/?api=1&destination=41.58981437,-93.63838484&travelmode=driving&dir_action=navigate
+
+Stop: 33
+Pole FID: 22240081
+JU Record: 2283354
+Work order: 07400073460212
+Licensee Name: WINDSTREAM
+Licensee Application Name: POLE TRANSFER
+Application Description: Pole Transfer Request  41.5898143700 -93.6383848400
+Permit status: APPROVED
+Status Date: 2025-11-24 10:00:09
+JU Type: NEWPERMIT
+JU Subtype: None
+Create Date: 2025-11-24 10:00:08
+City: DES MOINES
+State: IA
+Service Area: DM
+Source address: 1508  PLEASANT ST, DES MOINES, IA
+Latitude: 41.58981437
+Longitude: -93.63838484
+Area: Pleasant Street
+Source row: 39
+Source file: 07400073460212 ~Des Moines IA Pole Transfers.xlsx
+Source sheet: Sheet1
+
+Notes:
+
+Billing codes:
+
+Photos / documents:

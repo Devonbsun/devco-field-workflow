@@ -1,0 +1,10 @@
+Job Number: 07400073460200
+JU Record: 893343
+Address: 4503 E PINE AVE, DES MOINES, IA
+Latitude: 41.51763235
+Longitude: -93.52504283
+Condition Code: GUYBRK
+Condition Description: GUYBRK
+Inspection Condition: 2207875
+Status: NEW
+Complete: NO

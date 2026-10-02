@@ -1,0 +1,10 @@
+Job Number: 07400073460200
+JU Record: 18140552
+Address: ACROSS FROM 5310 LOWER BEAVER RD, POLK CO, IA
+Latitude: 41.64656386
+Longitude: -93.67351485
+Condition Code: CLR40POLE
+Condition Description: CLR40POLE
+Inspection Condition: 2196009
+Status: NEW
+Complete: NO

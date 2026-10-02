@@ -1,0 +1,10 @@
+Job Number: 07400073460200
+JU Record: 893253
+Address: 6845 SE 60 ST POLK COUNTY
+Latitude: 41.51995644
+Longitude: -93.49221605
+Condition Code: CLR12LIGHT
+Condition Description: CLR12LIGHT
+Inspection Condition: 2207860
+Status: NEW
+Complete: NO

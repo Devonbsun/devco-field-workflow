@@ -1,0 +1,14 @@
+# Don't upload pole photos
+*.jpg
+*.jpeg
+*.png
+*.heic
+*.mp4
+
+# Python cache
+__pycache__/
+*.pyc
+
+# Temporary/system files
+*.tmp
+.DS_Store

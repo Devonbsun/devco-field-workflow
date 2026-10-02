@@ -1,0 +1,32 @@
+JU Record: 2232928
+Address: 3909 University Ave, Des Moines, IA
+GPS navigation: https://www.google.com/maps/dir/?api=1&destination=41.60042394,-93.67007731&travelmode=driving&dir_action=navigate
+
+Stop: 31
+Pole FID: 21637640
+JU Record: 2232928
+Work order: 07400073460212
+Licensee Name: WINDSTREAM
+Licensee Application Name: POLE TRANSFER
+Application Description: Pole Transfer Request  41.6004239400 -93.6700773100
+Permit status: APPROVED
+Status Date: 2025-10-27 16:03:26
+JU Type: NEWPERMIT
+JU Subtype: None
+Create Date: 2025-10-27 16:03:25
+City: DES MOINES
+State: IA
+Service Area: DM
+Source address: 3909 UNIVERSITY AVE, DES MOINES, IA
+Latitude: 41.60042394
+Longitude: -93.67007731
+Area: West University
+Source row: 29
+Source file: 07400073460212 ~Des Moines IA Pole Transfers.xlsx
+Source sheet: Sheet1
+
+Notes:
+
+Billing codes:
+
+Photos / documents:

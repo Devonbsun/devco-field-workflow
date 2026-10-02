@@ -1,0 +1,10 @@
+Job Number: 07400073460200
+JU Record: 18813287
+Address: 5885 NE 14 ST, POLK COUNTY, IA
+Latitude: 41.66622413
+Longitude: -93.6003288
+Condition Code: CLR40POLE
+Condition Description: < 40" AT POLE
+Inspection Condition: 2557333
+Status: NEW
+Complete: NO

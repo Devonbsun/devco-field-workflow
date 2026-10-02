@@ -1,0 +1,10 @@
+Job Number: 07400073460200
+JU Record: 891451
+Address: 3803 CAMBRIDGE ST, DES MOINES, IA
+Latitude: 41.62957852
+Longitude: -93.61624271
+Condition Code: CLR40POLE
+Condition Description: All comms attachments need to lower to get 40" of clearance below power on the pole.
+Inspection Condition: 1561659
+Status: NEW
+Complete: NO

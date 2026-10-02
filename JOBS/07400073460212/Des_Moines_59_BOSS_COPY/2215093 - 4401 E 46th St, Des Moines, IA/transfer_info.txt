@@ -1,0 +1,32 @@
+JU Record: 2215093
+Address: 4401 E 46th St, Des Moines, IA
+GPS navigation: https://www.google.com/maps/dir/?api=1&destination=41.63901111,-93.52220544&travelmode=driving&dir_action=navigate
+
+Stop: 3
+Pole FID: 21793503
+JU Record: 2215093
+Work order: 07400073460212
+Licensee Name: WINDSTREAM
+Licensee Application Name: POLE TRANSFER
+Application Description: Pole Transfer Request  41.6390111100 -93.5222054400
+Permit status: APPROVED
+Status Date: 2025-10-14 23:17:51
+JU Type: NEWPERMIT
+JU Subtype: None
+Create Date: 2025-10-14 23:17:50
+City: DES MOINES
+State: IA
+Service Area: DM
+Source address: 4401 E 46 ST, DES MOINES, IA
+Latitude: 41.63901111
+Longitude: -93.52220544
+Area: East 46th Street
+Source row: 20
+Source file: 07400073460212 ~Des Moines IA Pole Transfers.xlsx
+Source sheet: Sheet1
+
+Notes:
+
+Billing codes:
+
+Photos / documents:

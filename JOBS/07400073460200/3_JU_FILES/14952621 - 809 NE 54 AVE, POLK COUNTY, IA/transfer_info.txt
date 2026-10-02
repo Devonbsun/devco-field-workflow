@@ -1,0 +1,10 @@
+Job Number: 07400073460200
+JU Record: 14952621
+Address: 809 NE 54 AVE, POLK COUNTY, IA
+Latitude: 41.65869347
+Longitude: -93.60831043
+Condition Code: CLR40POLE
+Condition Description: < 40" AT POLE
+Inspection Condition: 2554315
+Status: NEW
+Complete: NO

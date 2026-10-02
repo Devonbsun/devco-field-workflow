@@ -1,0 +1,32 @@
+JU Record: 2183603
+Address: 400 Euclid Ave, Des Moines, IA
+GPS navigation: https://www.google.com/maps/dir/?api=1&destination=41.62760351,-93.62238652&travelmode=driving&dir_action=navigate
+
+Stop: 19
+Pole FID: 22241683
+JU Record: 2183603
+Work order: 07400073460212
+Licensee Name: WINDSTREAM
+Licensee Application Name: POLE TRANSFER
+Application Description: Pole Transfer Request  41.6276035100 -93.6223865200
+Permit status: APPROVED
+Status Date: 2025-10-06 09:34:11
+JU Type: NEWPERMIT
+JU Subtype: None
+Create Date: 2025-10-06 09:34:10
+City: DES MOINES
+State: IA
+Service Area: DM
+Source address: 400 EUCLID AVE, DES MOINES, IA
+Latitude: 41.62760351
+Longitude: -93.62238652
+Area: Euclid Avenue
+Source row: 14
+Source file: 07400073460212 ~Des Moines IA Pole Transfers.xlsx
+Source sheet: Sheet1
+
+Notes:
+
+Billing codes:
+
+Photos / documents:

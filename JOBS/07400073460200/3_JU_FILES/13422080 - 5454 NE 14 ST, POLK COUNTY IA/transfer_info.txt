@@ -1,0 +1,10 @@
+Job Number: 07400073460200
+JU Record: 13422080
+Address: 5454 NE 14 ST, POLK COUNTY IA
+Latitude: 41.65961921
+Longitude: -93.60070998
+Condition Code: CLR12LIGHT
+Condition Description: < 12" AT LIGHT MAST
+Inspection Condition: 2557170
+Status: NEW
+Complete: NO

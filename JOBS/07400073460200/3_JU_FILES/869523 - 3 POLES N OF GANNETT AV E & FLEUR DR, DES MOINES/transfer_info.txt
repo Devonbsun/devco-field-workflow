@@ -1,0 +1,10 @@
+Job Number: 07400073460200
+JU Record: 869523
+Address: 3 POLES N OF GANNETT AV E & FLEUR DR, DES MOINES
+Latitude: 41.51965517
+Longitude: -93.64513921
+Condition Code: CLR30MIDSP
+Condition Description: Communications Midspan
+Inspection Condition: 1708039
+Status: NEW
+Complete: NO

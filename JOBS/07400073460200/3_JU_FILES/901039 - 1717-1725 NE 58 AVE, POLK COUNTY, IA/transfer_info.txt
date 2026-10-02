@@ -1,0 +1,10 @@
+Job Number: 07400073460200
+JU Record: 901039
+Address: 1717-1725 NE 58 AVE, POLK COUNTY, IA
+Latitude: 41.66607344
+Longitude: -93.59246407
+Condition Code: CLR40POLE
+Condition Description: < 40" AT POLE
+Inspection Condition: 2557257
+Status: NEW
+Complete: NO

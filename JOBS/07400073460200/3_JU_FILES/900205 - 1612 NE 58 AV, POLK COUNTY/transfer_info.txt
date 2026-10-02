@@ -1,0 +1,10 @@
+Job Number: 07400073460200
+JU Record: 900205
+Address: 1612 NE 58 AV, POLK COUNTY
+Latitude: 41.66604911
+Longitude: -93.59415989
+Condition Code: CLR40POLE
+Condition Description: < 40" AT POLE
+Inspection Condition: 2557282
+Status: NEW
+Complete: NO

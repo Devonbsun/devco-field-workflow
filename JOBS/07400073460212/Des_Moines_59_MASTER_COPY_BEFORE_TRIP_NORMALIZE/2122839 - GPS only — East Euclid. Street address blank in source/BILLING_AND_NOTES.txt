@@ -1,0 +1,27 @@
+DES MOINES POLE TRANSFER
+
+JU NUMBER: 2122839
+ADDRESS: GPS only — East Euclid. Street address blank in source.
+
+BILLING
+--------------------------------
+Trip Charge x1
+
+WORK / FIELD NOTES
+--------------------------------
+Trip charge.
+
+==================================================
+JU: 2122839
+Address: GPS only — East Euclid. Street address blank in source.
+
+PHOTOS:
+- Solocator-2026-10-01 03-21-11.jpg
+
+STATUS: SURVEY / TRIP CHARGE
+
+BILLING:
+TRIP CHARGE [CODE PENDING] x1
+
+NOTES:
+Transfer was already xcomplete

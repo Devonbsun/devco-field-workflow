@@ -1,0 +1,32 @@
+JU Record: 2473046
+Address: 2801 Park Ave, Des Moines, IA
+GPS navigation: https://www.google.com/maps/dir/?api=1&destination=41.5555248,-93.65483613&travelmode=driving&dir_action=navigate
+
+Stop: 46
+Pole FID: 22172183
+JU Record: 2473046
+Work order: 07400073460212
+Licensee Name: WINDSTREAM
+Licensee Application Name: POLE TRANSFER
+Application Description: Pole Transfer Request  41.5555248000 -93.6548361300
+Permit status: APPROVED
+Status Date: 2026-02-25 10:17:36
+JU Type: NEWPERMIT
+JU Subtype: None
+Create Date: 2026-02-25 10:17:35
+City: DES MOINES
+State: IA
+Service Area: DM
+Source address: 2801 PARK AVE, DES MOINES, IA
+Latitude: 41.5555248
+Longitude: -93.65483613
+Area: Park Avenue
+Source row: 45
+Source file: 07400073460212 ~Des Moines IA Pole Transfers.xlsx
+Source sheet: Sheet1
+
+Notes:
+
+Billing codes:
+
+Photos / documents:

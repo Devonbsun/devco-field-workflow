@@ -1,0 +1,10 @@
+Job Number: 07400073460200
+JU Record: 883968
+Address: 2727 SW 9 ST DES MOINES
+Latitude: 41.56040323
+Longitude: -93.62558757
+Condition Code: WIREOVRLASH
+Condition Description: WIND: PULL SLACK OUT OF DROPS AND SECURE TO MAINLINE , Address: 2727 SW 9 ST DES MOINES, Feature Typ
+Inspection Condition: 2568886
+Status: NEW
+Complete: NO

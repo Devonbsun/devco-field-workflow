@@ -1,0 +1,10 @@
+Job Number: 07400073460200
+JU Record: 15151620
+Address: IN FRT OF 5676 NE 22ND ST, POLK COUNTY, IA
+Latitude: 41.66387767
+Longitude: -93.5814374
+Condition Code: CLR40POLE
+Condition Description: < 40" AT POLE
+Inspection Condition: 2554838
+Status: NEW
+Complete: NO

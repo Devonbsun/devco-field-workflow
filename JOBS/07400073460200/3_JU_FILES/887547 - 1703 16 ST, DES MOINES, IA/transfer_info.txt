@@ -1,0 +1,10 @@
+Job Number: 07400073460200
+JU Record: 887547
+Address: 1703 16 ST, DES MOINES, IA
+Latitude: 41.60958441
+Longitude: -93.63896646
+Condition Code: CLRVERTSUPPLY
+Condition Description: WIND raise for separation., Address: 1703 16 ST, DES MOINES, IA, Feature Type: POLE, CLRVERTSUPPLY:
+Inspection Condition: 2579311
+Status: NEW
+Complete: NO

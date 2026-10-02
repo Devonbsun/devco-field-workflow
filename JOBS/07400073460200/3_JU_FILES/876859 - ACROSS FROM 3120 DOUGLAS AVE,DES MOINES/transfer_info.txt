@@ -1,0 +1,10 @@
+Job Number: 07400073460200
+JU Record: 876859
+Address: ACROSS FROM 3120 DOUGLAS AVE,DES MOINES
+Latitude: 41.62967166
+Longitude: -93.66115477
+Condition Code: CLRVERTSUPPLY
+Condition Description: Lower for separation.
+Inspection Condition: 1910608
+Status: NEW
+Complete: NO

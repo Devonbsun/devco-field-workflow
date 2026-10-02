@@ -1,0 +1,10 @@
+Job Number: 07400073460200
+JU Record: 855720
+Address: 1 SPAN S/ LYNDHURST DR & NW 86 ST, JOHNSTON
+Latitude: 41.67848592
+Longitude: -93.73657597
+Condition Code: CLR12LIGHT
+Condition Description: < 12" AT LIGHT MAST
+Inspection Condition: 2556913
+Status: NEW
+Complete: NO

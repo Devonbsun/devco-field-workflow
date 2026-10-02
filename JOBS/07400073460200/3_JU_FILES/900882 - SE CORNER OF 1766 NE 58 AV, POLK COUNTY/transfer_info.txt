@@ -1,0 +1,10 @@
+Job Number: 07400073460200
+JU Record: 900882
+Address: SE CORNER OF 1766 NE 58 AV, POLK COUNTY
+Latitude: 41.66608688
+Longitude: -93.5909498
+Condition Code: CLR40POLE
+Condition Description: < 40" AT POLE
+Inspection Condition: 2554206
+Status: NEW
+Complete: NO

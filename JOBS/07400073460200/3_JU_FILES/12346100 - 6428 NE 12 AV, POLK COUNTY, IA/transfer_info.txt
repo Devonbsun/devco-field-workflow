@@ -1,0 +1,10 @@
+Job Number: 07400073460200
+JU Record: 12346100
+Address: 6428 NE 12 AV, POLK COUNTY, IA
+Latitude: 41.60068596
+Longitude: -93.48270569
+Condition Code: GUYSLACK
+Condition Description: WS - TIGHTEN LOOSE DOWN GUY, Address: 6428 NE 12 AV, POLK COUNTY, IA, Feature Type: POLE, GUYSLACK:
+Inspection Condition: 2443402
+Status: NEW
+Complete: NO

@@ -1,0 +1,10 @@
+Job Number: 07400073460200
+JU Record: 877002
+Address: 1140 NE 54 AVE, POLK COUNTY
+Latitude: 41.65869491
+Longitude: -93.60393872
+Condition Code: CLR40POLE
+Condition Description: < 40" AT POLE
+Inspection Condition: 2554447
+Status: NEW
+Complete: NO

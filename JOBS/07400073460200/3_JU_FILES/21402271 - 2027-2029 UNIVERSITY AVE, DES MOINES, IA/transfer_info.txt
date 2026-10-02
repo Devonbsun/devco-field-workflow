@@ -1,0 +1,10 @@
+Job Number: 07400073460200
+JU Record: 21402271
+Address: 2027-2029 UNIVERSITY AVE, DES MOINES, IA
+Latitude: 41.60048287
+Longitude: -93.64525464
+Condition Code: CLRVERTSUPPLY
+Condition Description: WIND raise for separation., Address: 2027-2029 UNIVERSITY AVE, DES MOINES, IA, Feature Type: POLE, C
+Inspection Condition: 2516490
+Status: NEW
+Complete: NO

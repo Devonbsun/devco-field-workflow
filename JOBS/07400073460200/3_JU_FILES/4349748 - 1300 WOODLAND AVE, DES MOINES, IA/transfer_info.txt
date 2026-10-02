@@ -1,0 +1,10 @@
+Job Number: 07400073460200
+JU Record: 4349748
+Address: 1300 WOODLAND AVE, DES MOINES, IA
+Latitude: 41.58810165
+Longitude: -93.63395687
+Condition Code: CLR40POLE
+Condition Description: CLR40POLE
+Inspection Condition: 2192874
+Status: NEW
+Complete: NO

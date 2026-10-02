@@ -1,0 +1,10 @@
+Job Number: 07400073460200
+JU Record: 899704
+Address: 2323 DIXON ST, DES MOINES, IA
+Latitude: 41.61661681
+Longitude: -93.58892179
+Condition Code: CLRVERTSUPPLY
+Condition Description: Lower for separation.
+Inspection Condition: 1987225
+Status: NEW
+Complete: NO

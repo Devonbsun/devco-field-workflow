@@ -1,0 +1,10 @@
+Job Number: 07400073460200
+JU Record: 855649
+Address: ACROSS FROM 5401 NW 86TH ST,JOHNSTON
+Latitude: 41.65881877
+Longitude: -93.73659121
+Condition Code: CLR12LIGHT
+Condition Description: Communications Light Mast
+Inspection Condition: 1708051
+Status: NEW
+Complete: NO

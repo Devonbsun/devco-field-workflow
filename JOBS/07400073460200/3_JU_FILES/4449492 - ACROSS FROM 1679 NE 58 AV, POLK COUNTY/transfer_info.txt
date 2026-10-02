@@ -1,0 +1,10 @@
+Job Number: 07400073460200
+JU Record: 4449492
+Address: ACROSS FROM 1679 NE 58 AV, POLK COUNTY
+Latitude: 41.66605832
+Longitude: -93.59359057
+Condition Code: CLR40POLE
+Condition Description: < 40" AT POLE
+Inspection Condition: 2557187
+Status: NEW
+Complete: NO

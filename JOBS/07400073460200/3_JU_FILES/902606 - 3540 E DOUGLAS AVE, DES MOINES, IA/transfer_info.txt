@@ -1,0 +1,10 @@
+Job Number: 07400073460200
+JU Record: 902606
+Address: 3540 E DOUGLAS AVE, DES MOINES, IA
+Latitude: 41.62962252
+Longitude: -93.54662612
+Condition Code: CLRVERTSUPPLY
+Condition Description: WIND lower for separation, messenger is wrapped around MC., Address: 3540 E DOUGLAS AVE, DES MOINES,
+Inspection Condition: 2530287
+Status: NEW
+Complete: NO

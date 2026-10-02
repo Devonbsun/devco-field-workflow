@@ -1,0 +1,10 @@
+Job Number: 07400073460200
+JU Record: 897079
+Address: 1521 DELAWARE AVE, DES MOINES
+Latitude: 41.60714766
+Longitude: -93.58117314
+Condition Code: WIREUNSEC
+Condition Description: WIND lower below MC and attach to pole-j hooked., Address: 1521 DELAWARE AVE, DES MOINES, Feature Ty
+Inspection Condition: 2531426
+Status: NEW
+Complete: NO

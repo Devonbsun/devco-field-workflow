@@ -1,0 +1,10 @@
+Job Number: 07400073460200
+JU Record: 900656
+Address: 6 POLES W OF NE 19TH ST & NE 58TH AVE, POLK COUNTY, IA
+Latitude: 41.66608779
+Longitude: -93.59059054
+Condition Code: CLR40POLE
+Condition Description: < 40" AT POLE
+Inspection Condition: 2557113
+Status: NEW
+Complete: NO

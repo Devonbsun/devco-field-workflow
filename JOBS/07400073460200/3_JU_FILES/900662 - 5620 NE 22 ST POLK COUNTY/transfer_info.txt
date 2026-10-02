@@ -1,0 +1,10 @@
+Job Number: 07400073460200
+JU Record: 900662
+Address: 5620 NE 22 ST POLK COUNTY
+Latitude: 41.66226168
+Longitude: -93.58143797
+Condition Code: CLR30MIDSP
+Condition Description: < 30" AT MIDSPAN
+Inspection Condition: 2554827
+Status: NEW
+Complete: NO

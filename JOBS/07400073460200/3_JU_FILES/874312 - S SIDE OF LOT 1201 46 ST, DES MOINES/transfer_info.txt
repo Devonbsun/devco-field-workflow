@@ -1,0 +1,10 @@
+Job Number: 07400073460200
+JU Record: 874312
+Address: S SIDE OF LOT 1201 46 ST, DES MOINES
+Latitude: 41.60043625
+Longitude: -93.67995451
+Condition Code: WIREOVRLASH
+Condition Description: WIND repair lashing., Address: S SIDE OF LOT 1201 46 ST, DES MOINES, Feature Type: POLE, WIREOVRLASH
+Inspection Condition: 2516517
+Status: NEW
+Complete: NO

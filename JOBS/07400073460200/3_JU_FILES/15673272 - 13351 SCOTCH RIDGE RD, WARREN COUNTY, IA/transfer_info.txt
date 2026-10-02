@@ -1,0 +1,10 @@
+Job Number: 07400073460200
+JU Record: 15673272
+Address: 13351 SCOTCH RIDGE RD, WARREN COUNTY, IA
+Latitude: 41.47450322
+Longitude: -93.55199389
+Condition Code: CLR40POLE
+Condition Description: CLR40POLE
+Inspection Condition: 2207977
+Status: NEW
+Complete: NO

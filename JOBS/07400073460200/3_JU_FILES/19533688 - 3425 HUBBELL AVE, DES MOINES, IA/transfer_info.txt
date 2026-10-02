@@ -1,0 +1,10 @@
+Job Number: 07400073460200
+JU Record: 19533688
+Address: 3425 HUBBELL AVE, DES MOINES, IA
+Latitude: 41.62717264
+Longitude: -93.54803125
+Condition Code: WIREUNSEC
+Condition Description: WIND: PULL SLACK OUT OF LINE FOR SEPARATION AND INSTALL GUY GUARD , Address: 3425 HUBBELL AVE, DES M
+Inspection Condition: 2547266
+Status: NEW
+Complete: NO

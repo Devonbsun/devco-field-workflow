@@ -1,0 +1,10 @@
+Job Number: 07400073460200
+JU Record: 13927093
+Address: 415 MARTIN LUTHER KING JR PKWY, DES MOINES, IA
+Latitude: 41.58340954
+Longitude: -93.64406192
+Condition Code: GUYSLACK
+Condition Description: GUYSLACK
+Inspection Condition: 2194651
+Status: NEW
+Complete: NO

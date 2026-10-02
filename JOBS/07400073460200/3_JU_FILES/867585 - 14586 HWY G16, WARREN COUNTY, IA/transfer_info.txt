@@ -1,0 +1,10 @@
+Job Number: 07400073460200
+JU Record: 867585
+Address: 14586 HWY G16, WARREN COUNTY, IA
+Latitude: 41.47411163
+Longitude: -93.52679923
+Condition Code: GUYMARK
+Condition Description: GUYMARK
+Inspection Condition: 2207790
+Status: NEW
+Complete: NO

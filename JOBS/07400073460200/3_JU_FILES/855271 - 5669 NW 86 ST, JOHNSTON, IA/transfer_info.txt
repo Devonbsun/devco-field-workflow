@@ -1,0 +1,10 @@
+Job Number: 07400073460200
+JU Record: 855271
+Address: 5669  NW 86 ST, JOHNSTON, IA
+Latitude: 41.66367606
+Longitude: -93.73664515
+Condition Code: CLR12SVCDROP
+Condition Description: LOWER ATTACHMENT FOR SEPARATION<br/>Feature Type:	POLE<br/>CLR12SVCDROP:	CLR12SVCDROP - < 12" AT SE
+Inspection Condition: 2163171
+Status: NEW
+Complete: NO

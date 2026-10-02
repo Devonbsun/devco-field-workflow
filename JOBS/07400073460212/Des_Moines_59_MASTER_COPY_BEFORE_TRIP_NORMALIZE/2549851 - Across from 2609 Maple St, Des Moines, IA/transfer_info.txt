@@ -1,0 +1,32 @@
+JU Record: 2549851
+Address: Across from 2609 Maple St, Des Moines, IA
+GPS navigation: https://www.google.com/maps/dir/?api=1&destination=41.59836943,-93.56750487&travelmode=driving&dir_action=navigate
+
+Stop: 6
+Pole FID: 22754073
+JU Record: 2549851
+Work order: 07400073460212
+Licensee Name: WINDSTREAM
+Licensee Application Name: POLE TRANSFER
+Application Description: Pole Transfer Request  41.5983694300 -93.5675048700
+Permit status: APPROVED
+Status Date: 2026-05-06 01:07:52
+JU Type: NEWPERMIT
+JU Subtype: None
+Create Date: 2026-05-06 01:07:51
+City: DES MOINES
+State: IA
+Service Area: DM
+Source address: ACROSS FROM 2609 MAPLE ST, DES MOINES, IA
+Latitude: 41.59836943
+Longitude: -93.56750487
+Area: Maple Street
+Source row: 57
+Source file: 07400073460212 ~Des Moines IA Pole Transfers.xlsx
+Source sheet: Sheet1
+
+Notes:
+
+Billing codes:
+
+Photos / documents:

@@ -1,0 +1,10 @@
+Job Number: 07400073460200
+JU Record: 902573
+Address: 5420 E UNIVERSITY AV PLEASANT HILL
+Latitude: 41.60068697
+Longitude: -93.50647512
+Condition Code: UGARDCVR
+Condition Description: UGARDCVR
+Inspection Condition: 2196783
+Status: NEW
+Complete: NO

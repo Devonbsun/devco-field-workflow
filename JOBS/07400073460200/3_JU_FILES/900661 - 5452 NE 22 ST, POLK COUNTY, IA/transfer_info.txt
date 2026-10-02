@@ -1,0 +1,10 @@
+Job Number: 07400073460200
+JU Record: 900661
+Address: 5452 NE 22 ST, POLK COUNTY, IA
+Latitude: 41.65999338
+Longitude: -93.5814388
+Condition Code: CLR40POLE
+Condition Description: < 40" AT POLE
+Inspection Condition: 2554569
+Status: NEW
+Complete: NO

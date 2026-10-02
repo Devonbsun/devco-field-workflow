@@ -1,0 +1,60 @@
+
+==================================================
+JU: 2456689
+Address: 1102 Park Ave, Des Moines, IA
+
+PHOTOS:
+- Solocator-2026-10-01 05-34-43.jpg
+
+STATUS: OTHER
+
+BILLING:
+TRIP CHARGE [CODE PENDING] x1
+
+NOTES:
+Transfer already completed
+
+==================================================
+JU: 2456689
+Address: 1102 Park Ave, Des Moines, IA
+
+PHOTOS:
+- Solocator-2026-10-01 05-36-14.jpg
+
+STATUS: OTHER
+
+BILLING:
+No billing codes entered
+
+NOTES:
+None
+
+==================================================
+JU: 2456689
+Address: 1102 Park Ave, Des Moines, IA
+
+PHOTOS:
+- Solocator-2026-10-01 05-37-44.jpg
+
+STATUS: OTHER
+
+BILLING:
+No billing codes entered
+
+NOTES:
+None
+
+==================================================
+JU: 2456689
+Address: 1102 Park Ave, Des Moines, IA
+
+PHOTOS:
+- Solocator-2026-10-01 05-39-36.jpg
+
+STATUS: OTHER
+
+BILLING:
+TRIP CHARGE [CODE PENDING] x1
+
+NOTES:
+Unable to identify windsstream line

@@ -1,0 +1,10 @@
+Job Number: 07400073460200
+JU Record: 855727
+Address: 6998 NW 86 ST, JOHNSTON, IA
+Latitude: 41.68823754
+Longitude: -93.73614997
+Condition Code: GUYBRK
+Condition Description: Broken Guy Wire
+Inspection Condition: 2554542
+Status: NEW
+Complete: NO

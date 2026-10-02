@@ -1,0 +1,10 @@
+Job Number: 07400073460200
+JU Record: 901000
+Address: 2 SPANS S OF 5579 NE 22 ST, POLK
+Latitude: 41.65847907
+Longitude: -93.58144368
+Condition Code: CLR40POLE
+Condition Description: < 40" AT POLE
+Inspection Condition: 2554736
+Status: NEW
+Complete: NO

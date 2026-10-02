@@ -1,0 +1,10 @@
+Job Number: 07400073460200
+JU Record: 15474960
+Address: 4991 UNIVERSITY AVE, DES MOINES, IA
+Latitude: 41.60044646
+Longitude: -93.68894193
+Condition Code: WIREUNSEC
+Condition Description: WIND attach to pole., Address: 4991 UNIVERSITY AVE, DES MOINES, IA, Feature Type: POLE, WIREUNSEC: W
+Inspection Condition: 2516470
+Status: NEW
+Complete: NO

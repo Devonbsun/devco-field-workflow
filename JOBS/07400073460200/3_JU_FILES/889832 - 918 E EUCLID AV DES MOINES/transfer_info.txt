@@ -1,0 +1,10 @@
+Job Number: 07400073460200
+JU Record: 889832
+Address: 918 E EUCLID AV DES MOINES
+Latitude: 41.62777926
+Longitude: -93.60502879
+Condition Code: CLR12LIGHT
+Condition Description: < 12" AT LIGHT MAST
+Inspection Condition: 2557006
+Status: NEW
+Complete: NO

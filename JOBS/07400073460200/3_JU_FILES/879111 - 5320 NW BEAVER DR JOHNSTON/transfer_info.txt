@@ -1,0 +1,10 @@
+Job Number: 07400073460200
+JU Record: 879111
+Address: 5320 NW BEAVER DR JOHNSTON
+Latitude: 41.657286
+Longitude: -93.68432047
+Condition Code: CLR30MIDSP
+Condition Description: CLR30MIDSP
+Inspection Condition: 2195955
+Status: NEW
+Complete: NO

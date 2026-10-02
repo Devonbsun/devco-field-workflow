@@ -1,0 +1,32 @@
+JU Record: 2215100
+Address: 7300 Fleur Dr, Des Moines, IA
+GPS navigation: https://www.google.com/maps/dir/?api=1&destination=41.51847516,-93.64510784&travelmode=driving&dir_action=navigate
+
+Stop: 54
+Pole FID: 22126108
+JU Record: 2215100
+Work order: 07400073460212
+Licensee Name: WINDSTREAM
+Licensee Application Name: POLE TRANSFER
+Application Description: Pole Transfer Request  41.5184751600 -93.6451078400
+Permit status: APPROVED
+Status Date: 2025-10-14 23:17:55
+JU Type: NEWPERMIT
+JU Subtype: None
+Create Date: 2025-10-14 23:17:54
+City: DES MOINES
+State: IA
+Service Area: DM
+Source address: 7300  FLEUR DR, DES MOINES, IA
+Latitude: 41.51847516
+Longitude: -93.64510784
+Area: South Fleur
+Source row: 22
+Source file: 07400073460212 ~Des Moines IA Pole Transfers.xlsx
+Source sheet: Sheet1
+
+Notes:
+
+Billing codes:
+
+Photos / documents:

@@ -1,0 +1,10 @@
+Job Number: 07400073460200
+JU Record: 897652
+Address: 1609 DELAWARE AVE, DES MOINES, IA
+Latitude: 41.60779406
+Longitude: -93.58117642
+Condition Code: WIREUNSEC
+Condition Description: WIND attach to pole with 3 bolt clamp-stapled., Address: 1609 DELAWARE AVE, DES MOINES, IA, Feature
+Inspection Condition: 2531423
+Status: NEW
+Complete: NO

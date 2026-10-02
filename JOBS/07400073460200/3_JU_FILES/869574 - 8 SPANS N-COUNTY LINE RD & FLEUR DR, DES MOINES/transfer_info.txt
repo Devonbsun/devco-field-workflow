@@ -1,0 +1,10 @@
+Job Number: 07400073460200
+JU Record: 869574
+Address: 8 SPANS N/COUNTY LINE RD & FLEUR DR, DES MOINES
+Latitude: 41.51571131
+Longitude: -93.64480487
+Condition Code: UGARDCVR
+Condition Description: Not Bonded or Grounded
+Inspection Condition: 1708044
+Status: NEW
+Complete: NO

@@ -1,0 +1,32 @@
+JU Record: 2482316
+Address: 515 College Ave, Des Moines, IA
+GPS navigation: https://www.google.com/maps/dir/?api=1&destination=41.60772419,-93.62514203&travelmode=driving&dir_action=navigate
+
+Stop: 36
+Pole FID: 886883
+JU Record: 2482316
+Work order: 07400073460212
+Licensee Name: WINDSTREAM
+Licensee Application Name: POLE TRANSFER
+Application Description: Pole Transfer Request  41.6077241900 -93.6251420300
+Permit status: APPROVED
+Status Date: 2026-03-06 00:39:59
+JU Type: NEWPERMIT
+JU Subtype: None
+Create Date: 2026-03-06 00:39:58
+City: DES MOINES
+State: IA
+Service Area: DM
+Source address: 515 COLLEGE AV DES MOINES
+Latitude: 41.60772419
+Longitude: -93.62514203
+Area: College Avenue
+Source row: 46
+Source file: 07400073460212 ~Des Moines IA Pole Transfers.xlsx
+Source sheet: Sheet1
+
+Notes:
+
+Billing codes:
+
+Photos / documents:

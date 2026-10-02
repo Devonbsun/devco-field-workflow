@@ -1,0 +1,7 @@
+Field address: 816 Euclid
+Notes:
+Trip charge.
+Surveyed with Alan Garf day prior.
+
+Billing codes:
+WC1F x1

@@ -1,0 +1,10 @@
+Job Number: 07400073460200
+JU Record: 4450005
+Address: 5240 NE 22 ST, DES MOINES
+Latitude: 41.65608816
+Longitude: -93.58146298
+Condition Code: WIREDMG
+Condition Description: WIRE DAMAGED
+Inspection Condition: 2556993
+Status: NEW
+Complete: NO

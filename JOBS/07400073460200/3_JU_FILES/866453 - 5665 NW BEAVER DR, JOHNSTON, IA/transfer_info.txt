@@ -1,0 +1,10 @@
+Job Number: 07400073460200
+JU Record: 866453
+Address: 5665 NW BEAVER DR, JOHNSTON, IA
+Latitude: 41.66228341
+Longitude: -93.68475854
+Condition Code: CLR40POLE
+Condition Description: CLR40POLE
+Inspection Condition: 2195755
+Status: NEW
+Complete: NO

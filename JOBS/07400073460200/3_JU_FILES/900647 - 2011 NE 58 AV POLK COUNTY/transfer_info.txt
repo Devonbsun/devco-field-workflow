@@ -1,0 +1,10 @@
+Job Number: 07400073460200
+JU Record: 900647
+Address: 2011 NE 58 AV POLK COUNTY
+Latitude: 41.66612189
+Longitude: -93.58599854
+Condition Code: CLR40POLE
+Condition Description: < 40" AT POLE
+Inspection Condition: 2554525
+Status: NEW
+Complete: NO

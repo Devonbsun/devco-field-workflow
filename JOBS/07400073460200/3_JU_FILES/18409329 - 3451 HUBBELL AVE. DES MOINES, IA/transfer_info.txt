@@ -1,0 +1,10 @@
+Job Number: 07400073460200
+JU Record: 18409329
+Address: 3451 HUBBELL AVE. DES MOINES, IA
+Latitude: 41.62754356
+Longitude: -93.54714946
+Condition Code: WIREUNSEC
+Condition Description: WIND: PULL SLACK OUT OF SPAN AND MAKE SURE DROPS ARE FASTENED FOR SEPARATION, Address: 3451 HUBBELL
+Inspection Condition: 2547262
+Status: NEW
+Complete: NO

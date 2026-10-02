@@ -1,0 +1,10 @@
+Job Number: 07400073460200
+JU Record: 16801365
+Address: ACROSS FROM 1638 16TH ST,DES MOINES
+Latitude: 41.60885284
+Longitude: -93.63896597
+Condition Code: CLRVERTSUPPLY
+Condition Description: WIND raise for separation., Address: ACROSS FROM 1638 16TH ST,DES MOINES, Feature Type: POLE, CLRVER
+Inspection Condition: 2579307
+Status: NEW
+Complete: NO

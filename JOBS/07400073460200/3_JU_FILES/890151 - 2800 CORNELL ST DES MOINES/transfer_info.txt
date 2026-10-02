@@ -1,0 +1,10 @@
+Job Number: 07400073460200
+JU Record: 890151
+Address: 2800 CORNELL ST DES MOINES
+Latitude: 41.62049935
+Longitude: -93.61514177
+Condition Code: CLRGRND
+Condition Description: Raise for clearance.
+Inspection Condition: 2042130
+Status: NEW
+Complete: NO

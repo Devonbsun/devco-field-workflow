@@ -1,0 +1,10 @@
+Job Number: 07400073460200
+JU Record: 900047
+Address: 2ND POLE N OF E EUCLID AV ON DELAWARE AV, DES MOINES, IA
+Latitude: 41.62847827
+Longitude: -93.58123809
+Condition Code: CLR12LIGHT
+Condition Description: < 12" AT LIGHT MAST
+Inspection Condition: 2554585
+Status: NEW
+Complete: NO

@@ -1,0 +1,10 @@
+Job Number: 07400073460200
+JU Record: 905865
+Address: 360 S PLEASANT HILL BLVD, PLEASANT HILL, IA
+Latitude: 41.58378537
+Longitude: -93.52026271
+Condition Code: CLR40POLE
+Condition Description: CLR40POLE
+Inspection Condition: 2204852
+Status: NEW
+Complete: NO

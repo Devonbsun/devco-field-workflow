@@ -1,0 +1,10 @@
+Job Number: 07400073460200
+JU Record: 878209
+Address: 980 NE 54 AVE, POLK COUNTY, IA
+Latitude: 41.65868538
+Longitude: -93.60619715
+Condition Code: CLR40POLE
+Condition Description: < 40" AT POLE
+Inspection Condition: 2556937
+Status: NEW
+Complete: NO

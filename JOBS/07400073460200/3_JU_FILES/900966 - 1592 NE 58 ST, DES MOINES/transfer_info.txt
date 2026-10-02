@@ -1,0 +1,10 @@
+Job Number: 07400073460200
+JU Record: 900966
+Address: 1592 NE 58 ST, DES MOINES
+Latitude: 41.66603549
+Longitude: -93.59580423
+Condition Code: CLR40POLE
+Condition Description: < 40" AT POLE
+Inspection Condition: 2554262
+Status: NEW
+Complete: NO

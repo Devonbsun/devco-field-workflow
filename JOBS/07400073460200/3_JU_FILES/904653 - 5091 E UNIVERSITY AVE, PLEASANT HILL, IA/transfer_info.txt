@@ -1,0 +1,10 @@
+Job Number: 07400073460200
+JU Record: 904653
+Address: 5091 E UNIVERSITY AVE, PLEASANT HILL, IA
+Latitude: 41.60027592
+Longitude: -93.51436827
+Condition Code: CLR12LIGHT
+Condition Description: CLR12LIGHT - FIELD VERIFIED 7/1/2026
+Inspection Condition: 2196847
+Status: NEW
+Complete: NO

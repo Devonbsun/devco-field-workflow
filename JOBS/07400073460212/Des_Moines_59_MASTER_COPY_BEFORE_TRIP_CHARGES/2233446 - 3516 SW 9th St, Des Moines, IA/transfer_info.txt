@@ -1,0 +1,32 @@
+JU Record: 2233446
+Address: 3516 SW 9th St, Des Moines, IA
+GPS navigation: https://www.google.com/maps/dir/?api=1&destination=41.55231374,-93.62582012&travelmode=driving&dir_action=navigate
+
+Stop: 44
+Pole FID: 22397812
+JU Record: 2233446
+Work order: 07400073460212
+Licensee Name: WINDSTREAM
+Licensee Application Name: POLE TRANSFER
+Application Description: Pole Transfer Request  41.5523137400 -93.6258201200
+Permit status: APPROVED
+Status Date: 2025-10-27 17:38:04
+JU Type: NEWPERMIT
+JU Subtype: None
+Create Date: 2025-10-27 17:38:03
+City: DES MOINES
+State: IA
+Service Area: DM
+Source address: 3516 SW 9 ST DES MOINES
+Latitude: 41.55231374
+Longitude: -93.62582012
+Area: Southwest 9th
+Source row: 32
+Source file: 07400073460212 ~Des Moines IA Pole Transfers.xlsx
+Source sheet: Sheet1
+
+Notes:
+
+Billing codes:
+
+Photos / documents:

@@ -1,0 +1,10 @@
+Job Number: 07400073460200
+JU Record: 901004
+Address: 1 SPAN S OF 5299 NE 22ST, POLK COUNTY
+Latitude: 41.65622171
+Longitude: -93.58146392
+Condition Code: CLR40POLE
+Condition Description: < 40" AT POLE
+Inspection Condition: 2554807
+Status: NEW
+Complete: NO

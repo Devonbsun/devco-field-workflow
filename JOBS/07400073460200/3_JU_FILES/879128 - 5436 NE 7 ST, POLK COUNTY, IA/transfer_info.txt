@@ -1,0 +1,10 @@
+Job Number: 07400073460200
+JU Record: 879128
+Address: 5436 NE 7 ST, POLK COUNTY, IA
+Latitude: 41.66008952
+Longitude: -93.61025832
+Condition Code: CLR40POLE
+Condition Description: < 40" AT POLE
+Inspection Condition: 2554623
+Status: NEW
+Complete: NO

@@ -1,0 +1,10 @@
+Job Number: 07400073460200
+JU Record: 863325
+Address: ACROSS FROM 6340 UNIVERSITY AV, WINDSOR HEIGHTS
+Latitude: 41.60054633
+Longitude: -93.70443896
+Condition Code: CLR40POLE
+Condition Description: Communications at Pole
+Inspection Condition: 1706958
+Status: NEW
+Complete: NO

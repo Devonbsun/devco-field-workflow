@@ -1,0 +1,10 @@
+Job Number: 07400073460200
+JU Record: 4450030
+Address: ACROSS FROM 2115 NE 58TH AVE, POLK COUNTY, IA
+Latitude: 41.66612918
+Longitude: -93.58401615
+Condition Code: CLR40POLE
+Condition Description: < 40" AT POLE
+Inspection Condition: 2556988
+Status: NEW
+Complete: NO

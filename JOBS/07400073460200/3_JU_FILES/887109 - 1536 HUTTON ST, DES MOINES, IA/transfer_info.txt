@@ -1,0 +1,10 @@
+Job Number: 07400073460200
+JU Record: 887109
+Address: 1536 HUTTON ST, DES MOINES, IA
+Latitude: 41.60781828
+Longitude: -93.59662056
+Condition Code: CLRVERTSUPPLY
+Condition Description: Lower for separation.
+Inspection Condition: 1987286
+Status: NEW
+Complete: NO

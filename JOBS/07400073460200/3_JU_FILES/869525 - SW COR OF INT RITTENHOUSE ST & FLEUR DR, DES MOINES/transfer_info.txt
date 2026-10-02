@@ -1,0 +1,10 @@
+Job Number: 07400073460200
+JU Record: 869525
+Address: SW COR OF INT RITTENHOUSE ST & FLEUR DR, DES MOINES
+Latitude: 41.52098225
+Longitude: -93.64516276
+Condition Code: WIREDMG
+Condition Description: Conductor Not Securely Attached to the Surface of the Structure
+Inspection Condition: 1847859
+Status: NEW
+Complete: NO

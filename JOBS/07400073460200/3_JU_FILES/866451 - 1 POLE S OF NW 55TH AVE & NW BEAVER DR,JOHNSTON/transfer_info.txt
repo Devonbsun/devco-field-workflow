@@ -1,0 +1,10 @@
+Job Number: 07400073460200
+JU Record: 866451
+Address: 1 POLE S OF NW 55TH AVE & NW BEAVER DR,JOHNSTON
+Latitude: 41.66012703
+Longitude: -93.68497407
+Condition Code: CLR40POLE
+Condition Description: CLR40POLE
+Inspection Condition: 2195751
+Status: NEW
+Complete: NO

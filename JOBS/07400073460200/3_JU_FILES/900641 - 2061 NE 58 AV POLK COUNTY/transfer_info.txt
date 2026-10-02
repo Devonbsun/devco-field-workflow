@@ -1,0 +1,10 @@
+Job Number: 07400073460200
+JU Record: 900641
+Address: 2061 NE 58 AV POLK COUNTY
+Latitude: 41.66612226
+Longitude: -93.5845155
+Condition Code: CLR40POLE
+Condition Description: < 40" AT POLE
+Inspection Condition: 2557009
+Status: NEW
+Complete: NO

@@ -1,0 +1,10 @@
+Job Number: 07400073460200
+JU Record: 21115902
+Address: 5190 E UNIVERSITY AV PLEASANT HILL, IA
+Latitude: 41.60069178
+Longitude: -93.51078375
+Condition Code: WIREUNSEC
+Condition Description: WS - REMOVE J-HOOK AND SECURE ATTACHMENT TO POLE, Address: 5190 E UNIVERSITY AV PLEASANT HILL, IA, F
+Inspection Condition: 2444342
+Status: NEW
+Complete: NO

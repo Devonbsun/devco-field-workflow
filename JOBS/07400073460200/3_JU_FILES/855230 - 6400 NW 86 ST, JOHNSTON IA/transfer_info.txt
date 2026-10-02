@@ -1,0 +1,10 @@
+Job Number: 07400073460200
+JU Record: 855230
+Address: 6400 NW 86 ST, JOHNSTON IA
+Latitude: 41.67635063
+Longitude: -93.73659212
+Condition Code: CLR12LIGHT
+Condition Description: < 12" AT LIGHT MAST
+Inspection Condition: 2556860
+Status: NEW
+Complete: NO

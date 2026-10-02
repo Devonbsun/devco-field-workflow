@@ -1,0 +1,10 @@
+Job Number: 07400073460200
+JU Record: 890231
+Address: 636 E EUCLID AVE, DES MOINES, IA
+Latitude: 41.62776831
+Longitude: -93.6099458
+Condition Code: CLR40POLE
+Condition Description: Communications at Pole
+Inspection Condition: 1708034
+Status: NEW
+Complete: NO

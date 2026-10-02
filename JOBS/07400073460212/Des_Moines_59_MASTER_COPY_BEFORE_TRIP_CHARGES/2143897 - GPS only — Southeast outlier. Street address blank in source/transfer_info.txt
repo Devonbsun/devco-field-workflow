@@ -1,0 +1,32 @@
+JU Record: 2143897
+Address: GPS only — Southeast outlier. Street address blank in source.
+GPS navigation: https://www.google.com/maps/dir/?api=1&destination=41.47447864,-93.54221186&travelmode=driving&dir_action=navigate
+
+Stop: 58
+Pole FID: 22285940
+JU Record: 2143897
+Work order: 07400073460212
+Licensee Name: WINDSTREAM
+Licensee Application Name: POLE TRANSFER
+Application Description: Pole Transfer Request  41.4744786400 -93.5422118600
+Permit status: APPROVED
+Status Date: 2025-09-01 06:10:25
+JU Type: NEWPERMIT
+JU Subtype: None
+Create Date: 2025-09-01 06:10:24
+City: DES MOINES
+State: IA
+Service Area: DM
+Source address: None
+Latitude: 41.47447864
+Longitude: -93.54221186
+Area: Southeast outlier
+Source row: 4
+Source file: 07400073460212 ~Des Moines IA Pole Transfers.xlsx
+Source sheet: Sheet1
+
+Notes:
+
+Billing codes:
+
+Photos / documents:

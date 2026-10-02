@@ -1,0 +1,10 @@
+Job Number: 07400073460200
+JU Record: 899947
+Address: 1 SPAN N OF 2635 HUBBELL AVE, DES MOINES
+Latitude: 41.61460432
+Longitude: -93.56627846
+Condition Code: GRDMLD
+Condition Description: Molding Missing/Broken
+Inspection Condition: 2554425
+Status: NEW
+Complete: NO

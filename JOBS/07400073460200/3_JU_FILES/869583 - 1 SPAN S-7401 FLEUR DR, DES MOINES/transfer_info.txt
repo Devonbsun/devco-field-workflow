@@ -1,0 +1,10 @@
+Job Number: 07400073460200
+JU Record: 869583
+Address: 1 SPAN S/7401 FLEUR DR, DES MOINES
+Latitude: 41.51693373
+Longitude: -93.64515337
+Condition Code: UGARDCVR
+Condition Description: Communication riser not grounded
+Inspection Condition: 1846889
+Status: NEW
+Complete: NO

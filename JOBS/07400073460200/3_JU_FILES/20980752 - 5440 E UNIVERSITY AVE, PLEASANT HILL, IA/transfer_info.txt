@@ -1,0 +1,10 @@
+Job Number: 07400073460200
+JU Record: 20980752
+Address: 5440 E UNIVERSITY AVE, PLEASANT HILL, IA
+Latitude: 41.6006888
+Longitude: -93.50780581
+Condition Code: WIREDMG
+Condition Description: WIREDMG
+Inspection Condition: 2196950
+Status: NEW
+Complete: NO

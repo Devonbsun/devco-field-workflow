@@ -1,0 +1,10 @@
+Job Number: 07400073460200
+JU Record: 873150
+Address: 3223 UNIVERSITY AV DES MOINES
+Latitude: 41.60042778
+Longitude: -93.66137002
+Condition Code: GUYSLACK
+Condition Description: WIND repull guys., Address: 3223 UNIVERSITY AV DES MOINES, Feature Type: POLE, GUYSLACK: GUYSLACK -
+Inspection Condition: 2509401
+Status: NEW
+Complete: NO

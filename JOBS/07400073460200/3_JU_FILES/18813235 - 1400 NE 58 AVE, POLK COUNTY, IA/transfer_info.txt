@@ -1,0 +1,10 @@
+Job Number: 07400073460200
+JU Record: 18813235
+Address: 1400 NE 58 AVE, POLK COUNTY, IA
+Latitude: 41.6660962
+Longitude: -93.60029874
+Condition Code: WIRERMV
+Condition Description: Wire Remove
+Inspection Condition: 2554144
+Status: NEW
+Complete: NO

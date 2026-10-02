@@ -1,0 +1,10 @@
+Job Number: 07400073460200
+JU Record: 868448
+Address: 13013-13015 SCOTCH RIDGE RD, WARREN COUNTY, IA
+Latitude: 41.47254807
+Longitude: -93.55831165
+Condition Code: GUYSLACK
+Condition Description: GUYSLACK
+Inspection Condition: 2207816
+Status: NEW
+Complete: NO

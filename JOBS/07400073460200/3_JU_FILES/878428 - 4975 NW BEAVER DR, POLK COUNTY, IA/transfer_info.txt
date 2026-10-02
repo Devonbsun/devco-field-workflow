@@ -1,0 +1,10 @@
+Job Number: 07400073460200
+JU Record: 878428
+Address: 4975 NW BEAVER DR, POLK COUNTY, IA
+Latitude: 41.65001676
+Longitude: -93.67961798
+Condition Code: CLR40POLE
+Condition Description: CLR40POLE
+Inspection Condition: 2195872
+Status: NEW
+Complete: NO

@@ -1,0 +1,10 @@
+Job Number: 07400073460200
+JU Record: 14228914
+Address: 15019 SCOTCH RIDGE RD WARREN COUNTY, IA
+Latitude: 41.4763659
+Longitude: -93.51993333
+Condition Code: WIREDMG
+Condition Description: WIREDMG
+Inspection Condition: 2207966
+Status: NEW
+Complete: NO

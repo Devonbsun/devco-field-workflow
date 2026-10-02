@@ -1,0 +1,10 @@
+Job Number: 07400073460200
+JU Record: 869189
+Address: 1 SPAN N/COUNTY LINE RD & FLEUR DR, DES MOINES
+Latitude: 41.51236776
+Longitude: -93.64477792
+Condition Code: CLR40POLE
+Condition Description: Communications at Pole
+Inspection Condition: 1708038
+Status: NEW
+Complete: NO

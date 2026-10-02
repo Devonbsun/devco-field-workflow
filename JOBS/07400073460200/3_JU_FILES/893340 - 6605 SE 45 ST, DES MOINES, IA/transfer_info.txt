@@ -1,0 +1,10 @@
+Job Number: 07400073460200
+JU Record: 893340
+Address: 6605 SE 45 ST, DES MOINES, IA
+Latitude: 41.52298563
+Longitude: -93.52507319
+Condition Code: CLR30MIDSP
+Condition Description: CLR30MIDSP
+Inspection Condition: 2207873
+Status: NEW
+Complete: NO

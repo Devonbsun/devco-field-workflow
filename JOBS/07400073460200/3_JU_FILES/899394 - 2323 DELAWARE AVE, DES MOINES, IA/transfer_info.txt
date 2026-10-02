@@ -1,0 +1,10 @@
+Job Number: 07400073460200
+JU Record: 899394
+Address: 2323 DELAWARE AVE, DES MOINES, IA
+Latitude: 41.61615588
+Longitude: -93.58118669
+Condition Code: WIREOVRLASH
+Condition Description: wind: properly secure excess wire , Address: 2323 DELAWARE AVE, DES MOINES, IA, Feature Type: POLE,
+Inspection Condition: 2539399
+Status: NEW
+Complete: NO

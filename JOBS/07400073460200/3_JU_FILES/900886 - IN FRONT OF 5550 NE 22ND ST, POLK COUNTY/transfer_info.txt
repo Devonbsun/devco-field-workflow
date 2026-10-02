@@ -1,0 +1,10 @@
+Job Number: 07400073460200
+JU Record: 900886
+Address: IN FRONT OF 5550 NE 22ND ST, POLK COUNTY
+Latitude: 41.660978
+Longitude: -93.58143596
+Condition Code: CLR40POLE
+Condition Description: < 40" AT POLE
+Inspection Condition: 2553629
+Status: NEW
+Complete: NO

@@ -1,0 +1,10 @@
+Job Number: 07400073460200
+JU Record: 10450742
+Address: WINDSOR PKWY & NW 86 ST, JOHNSTON IA
+Latitude: 41.66698389
+Longitude: -93.73665313
+Condition Code: CLR12SVCDROP
+Condition Description: LOWER ATTACHMENT FOR SEPARATION<br/>Feature Type:	POLE<br/>CLR12SVCDROP:	CLR12SVCDROP - < 12" AT SE
+Inspection Condition: 2163175
+Status: NEW
+Complete: NO

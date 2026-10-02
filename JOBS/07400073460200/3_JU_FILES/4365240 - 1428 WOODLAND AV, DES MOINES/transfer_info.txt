@@ -1,0 +1,10 @@
+Job Number: 07400073460200
+JU Record: 4365240
+Address: 1428 WOODLAND AV, DES MOINES
+Latitude: 41.58800291
+Longitude: -93.63609567
+Condition Code: CLR30MIDSP
+Condition Description: CLR30MIDSP
+Inspection Condition: 2192885
+Status: NEW
+Complete: NO

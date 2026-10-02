@@ -1,0 +1,32 @@
+JU Record: 2516156
+Address: 4580 Fleur Dr, Des Moines, IA
+GPS navigation: https://www.google.com/maps/dir/?api=1&destination=41.54273646,-93.64516541&travelmode=driving&dir_action=navigate
+
+Stop: 53
+Pole FID: 21143377
+JU Record: 2516156
+Work order: 07400073460212
+Licensee Name: WINDSTREAM
+Licensee Application Name: POLE TRANSFER
+Application Description: Pole Transfer Request  41.5427364600 -93.6451654100
+Permit status: APPROVED
+Status Date: 2026-04-08 01:18:05
+JU Type: NEWPERMIT
+JU Subtype: None
+Create Date: 2026-04-08 01:18:04
+City: DES MOINES
+State: IA
+Service Area: DM
+Source address: 4580 FLEUR DR, DES MOINES, IA
+Latitude: 41.54273646
+Longitude: -93.64516541
+Area: Fleur Drive
+Source row: 52
+Source file: 07400073460212 ~Des Moines IA Pole Transfers.xlsx
+Source sheet: Sheet1
+
+Notes:
+
+Billing codes:
+
+Photos / documents:

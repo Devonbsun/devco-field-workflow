@@ -1,0 +1,10 @@
+Job Number: 07400073460200
+JU Record: 906498
+Address: 6371 NE 12 AV POLK COUNTY
+Latitude: 41.60070452
+Longitude: -93.48420779
+Condition Code: GUYMSSNG
+Condition Description: WS - INSTALL DOWN GUY AND ANCHOR, Address: 6371 NE 12 AV POLK COUNTY, Feature Type: POLE, GUYMSSNG:
+Inspection Condition: 2443407
+Status: NEW
+Complete: NO

@@ -1,0 +1,10 @@
+Job Number: 07400073460200
+JU Record: 882058
+Address: 4841 SE 14TH ST, DES MOINES, IA
+Latitude: 41.5384772
+Longitude: -93.59660615
+Condition Code: WIRERMV
+Condition Description: Wire Remove
+Inspection Condition: 2554474
+Status: NEW
+Complete: NO

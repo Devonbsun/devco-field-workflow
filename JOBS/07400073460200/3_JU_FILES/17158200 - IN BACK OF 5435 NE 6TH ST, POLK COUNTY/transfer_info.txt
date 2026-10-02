@@ -1,0 +1,10 @@
+Job Number: 07400073460200
+JU Record: 17158200
+Address: IN BACK OF 5435 NE 6TH ST, POLK COUNTY
+Latitude: 41.65938263
+Longitude: -93.61026049
+Condition Code: CLRGRND
+Condition Description: GROUND
+Inspection Condition: 2554097
+Status: NEW
+Complete: NO

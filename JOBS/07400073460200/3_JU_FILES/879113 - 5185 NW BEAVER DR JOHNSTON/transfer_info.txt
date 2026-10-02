@@ -1,0 +1,10 @@
+Job Number: 07400073460200
+JU Record: 879113
+Address: 5185 NW BEAVER DR JOHNSTON
+Latitude: 41.65588443
+Longitude: -93.68343875
+Condition Code: CLR12LIGHT
+Condition Description: CLR12LIGHT
+Inspection Condition: 2195958
+Status: NEW
+Complete: NO

@@ -1,0 +1,10 @@
+Job Number: 07400073460200
+JU Record: 900660
+Address: 1596 NE 58 AVE, POLK COUNTY, IA
+Latitude: 41.66605108
+Longitude: -93.59526863
+Condition Code: CLR40POLE
+Condition Description: < 40" AT POLE
+Inspection Condition: 2557162
+Status: NEW
+Complete: NO

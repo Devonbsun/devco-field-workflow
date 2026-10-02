@@ -1,0 +1,10 @@
+Job Number: 07400073460200
+JU Record: 900884
+Address: ACROSS FROM 1987 NE 58 AV, POLK COUNTY
+Latitude: 41.66611615
+Longitude: -93.58644925
+Condition Code: CLR40POLE
+Condition Description: < 40" AT POLE
+Inspection Condition: 2554235
+Status: NEW
+Complete: NO

@@ -1,0 +1,10 @@
+Job Number: 07400073460200
+JU Record: 899820
+Address: ACROSS FROM 2601 DIXON ST, DES MOINES
+Latitude: 41.61815266
+Longitude: -93.58891572
+Condition Code: CLRVERTSUPPLY
+Condition Description: Lower fibers for separation.
+Inspection Condition: 1987218
+Status: NEW
+Complete: NO

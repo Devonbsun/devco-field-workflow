@@ -1,0 +1,10 @@
+Job Number: 07400073460200
+JU Record: 900663
+Address: 5640 NE 22 ST POLK COUNTY
+Latitude: 41.66293659
+Longitude: -93.5814409
+Condition Code: CLR12LOOP
+Condition Description: < 12" AT DRIP LOOP
+Inspection Condition: 2554399
+Status: NEW
+Complete: NO

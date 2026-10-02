@@ -1,0 +1,10 @@
+Job Number: 07400073460200
+JU Record: 879010
+Address: 1 POLE N OF 6141 NW BEAVER DR, JOHNSTON, IA
+Latitude: 41.67266408
+Longitude: -93.67991884
+Condition Code: CLR40POLE
+Condition Description: CLR40POLE
+Inspection Condition: 2195938
+Status: NEW
+Complete: NO

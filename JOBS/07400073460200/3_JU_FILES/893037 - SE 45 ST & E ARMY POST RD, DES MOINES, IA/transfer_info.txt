@@ -1,0 +1,10 @@
+Job Number: 07400073460200
+JU Record: 893037
+Address: SE 45 ST & E ARMY POST RD, DES MOINES, IA
+Latitude: 41.52550437
+Longitude: -93.52507474
+Condition Code: GUYSLACK
+Condition Description: GUYSLACK
+Inspection Condition: 2207824
+Status: NEW
+Complete: NO

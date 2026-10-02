@@ -1,0 +1,10 @@
+Job Number: 07400073460200
+JU Record: 906106
+Address: 5347 SE 45 ST, DES MOINES, IA
+Latitude: 41.53559304
+Longitude: -93.52521188
+Condition Code: GUYSLACK
+Condition Description: GUYSLACK
+Inspection Condition: 2207903
+Status: NEW
+Complete: NO

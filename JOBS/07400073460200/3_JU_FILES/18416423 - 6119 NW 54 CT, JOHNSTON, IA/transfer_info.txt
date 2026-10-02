@@ -1,0 +1,10 @@
+Job Number: 07400073460200
+JU Record: 18416423
+Address: 6119 NW 54 CT, JOHNSTON, IA
+Latitude: 41.67234426
+Longitude: -93.69276654
+Condition Code: WIREOVRLASH
+Condition Description: WIND - REMOVE UNUSED DROPS, COMBINE DROPS TO MAINLINE , Address: 6119 NW 54 CT, JOHNSTON, IA , Featu
+Inspection Condition: 2547488
+Status: NEW
+Complete: NO

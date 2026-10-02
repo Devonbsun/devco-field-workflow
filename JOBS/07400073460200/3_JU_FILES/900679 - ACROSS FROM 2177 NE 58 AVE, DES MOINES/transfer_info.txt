@@ -1,0 +1,10 @@
+Job Number: 07400073460200
+JU Record: 900679
+Address: ACROSS FROM 2177 NE 58 AVE, DES MOINES
+Latitude: 41.66614262
+Longitude: -93.58200322
+Condition Code: CLR40POLE
+Condition Description: < 40" AT POLE
+Inspection Condition: 2554659
+Status: NEW
+Complete: NO

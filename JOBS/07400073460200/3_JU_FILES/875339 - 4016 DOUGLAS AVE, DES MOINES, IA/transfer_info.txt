@@ -1,0 +1,10 @@
+Job Number: 07400073460200
+JU Record: 875339
+Address: 4016 DOUGLAS AVE, DES MOINES, IA
+Latitude: 41.62943394
+Longitude: -93.67321578
+Condition Code: CLRVERTSUPPLY
+Condition Description: Raise for separation.
+Inspection Condition: 2010023
+Status: NEW
+Complete: NO

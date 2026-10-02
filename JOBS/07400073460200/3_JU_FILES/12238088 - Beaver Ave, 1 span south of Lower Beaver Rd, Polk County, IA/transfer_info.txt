@@ -1,0 +1,10 @@
+Job Number: 07400073460200
+JU Record: 12238088
+Address: Beaver Ave, 1 span south of Lower Beaver Rd, Polk County, IA
+Latitude: 41.64701306
+Longitude: -93.67808173
+Condition Code: CLR12LIGHT
+Condition Description: CLR12LIGHT
+Inspection Condition: 2195992
+Status: NEW
+Complete: NO

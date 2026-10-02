@@ -1,0 +1,10 @@
+Job Number: 07400073460200
+JU Record: 881125
+Address: 1606 ARMY POST RD DES MOINES
+Latitude: 41.52646627
+Longitude: -93.63903037
+Condition Code: CLRGRND
+Condition Description: SECURE EXCEESS CABLE HANGING IN MIDSPAN
+Inspection Condition: 2442317
+Status: NEW
+Complete: NO

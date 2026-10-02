@@ -1,0 +1,10 @@
+Job Number: 07400073460200
+JU Record: 900646
+Address: 2031 NE 58 AVE, POLK COUNTY, IA
+Latitude: 41.6661242
+Longitude: -93.58554654
+Condition Code: CLR40POLE
+Condition Description: < 40" AT POLE
+Inspection Condition: 2554497
+Status: NEW
+Complete: NO

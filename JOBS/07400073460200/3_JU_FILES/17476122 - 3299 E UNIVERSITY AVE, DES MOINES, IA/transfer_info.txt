@@ -1,0 +1,10 @@
+Job Number: 07400073460200
+JU Record: 17476122
+Address: 3299 E UNIVERSITY AVE, DES MOINES, IA
+Latitude: 41.6006444
+Longitude: -93.55161247
+Condition Code: WIREUNSEC
+Condition Description: WS - SECURE ATTACHMENT TO POLE, Address: 3299 E UNIVERSITY AVE, DES MOINES, IA, Feature Type: POLE,
+Inspection Condition: 2532678
+Status: NEW
+Complete: NO

@@ -1,0 +1,32 @@
+JU Record: 2614123
+Address: 320 E Park Ave, Des Moines, IA
+GPS navigation: https://www.google.com/maps/dir/?api=1&destination=41.55543033,-93.61044543&travelmode=driving&dir_action=navigate
+
+Stop: 39
+Pole FID: 22507933
+JU Record: 2614123
+Work order: 07400073460212
+Licensee Name: WINDSTREAM
+Licensee Application Name: POLE TRANSFER
+Application Description: Pole Transfer Request  41.5554303300 -93.6104454300
+Permit status: APPROVED
+Status Date: 2026-06-23 08:12:26
+JU Type: NEWPERMIT
+JU Subtype: None
+Create Date: 2026-06-23 08:12:26
+City: DES MOINES
+State: IA
+Service Area: DM
+Source address: 320 E PARK AVE, DES MOINES, IA
+Latitude: 41.55543033
+Longitude: -93.61044543
+Area: East Park Avenue
+Source row: 61
+Source file: 07400073460212 ~Des Moines IA Pole Transfers.xlsx
+Source sheet: Sheet1
+
+Notes:
+
+Billing codes:
+
+Photos / documents:

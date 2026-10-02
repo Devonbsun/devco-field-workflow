@@ -1,0 +1,10 @@
+Job Number: 07400073460200
+JU Record: 855914
+Address: 5560 NW 86 ST JOHNSTON
+Latitude: 41.66123427
+Longitude: -93.73662828
+Condition Code: CLRVERTSUPPLY
+Condition Description: LOWER ATTACHMENT FOR SEPARATION FROM MEC<br/>Feature Type:	POLE<br/>CLRVERTSUPPLY:	CLRVERTSUPPLY -
+Inspection Condition: 2163166
+Status: NEW
+Complete: NO

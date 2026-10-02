@@ -1,0 +1,10 @@
+Job Number: 07400073460200
+JU Record: 21297503
+Address: 2108 NE 58 AVE, POLK COUNTY, IA
+Latitude: 41.66614579
+Longitude: -93.58252034
+Condition Code: CLR40POLE
+Condition Description: < 40" AT POLE
+Inspection Condition: 2554494
+Status: NEW
+Complete: NO

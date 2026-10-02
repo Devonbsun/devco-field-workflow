@@ -1,0 +1,10 @@
+Job Number: 07400073460200
+JU Record: 906068
+Address: 4825 SE VANDALIA DR, PLEASANT HILL, IA
+Latitude: 41.56824941
+Longitude: -93.51994082
+Condition Code: GUYSLACK
+Condition Description: GUYSLACK
+Inspection Condition: 2204879
+Status: NEW
+Complete: NO

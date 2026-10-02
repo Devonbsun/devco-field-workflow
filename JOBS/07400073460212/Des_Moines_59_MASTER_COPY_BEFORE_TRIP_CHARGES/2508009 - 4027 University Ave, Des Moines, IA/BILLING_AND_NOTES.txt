@@ -1,0 +1,46 @@
+
+==================================================
+JU: 2508009
+Address: 4027 University Ave, Des Moines, IA
+
+PHOTOS:
+- Solocator-2026-10-01 00-14-31.jpg
+- Solocator-2026-10-01 00-14-34.jpg
+
+BILLING:
+WC1F x1
+PM2A x1
+
+NOTES:
+None
+
+==================================================
+JU: 2508009
+Address: 4027 University Ave, Des Moines, IA
+
+PHOTOS:
+- Solocator-2026-10-01 00-17-57.jpg
+- Solocator-2026-10-01 00-18-27.jpg
+
+BILLING:
+WC1F x1
+PM2A x1
+
+NOTES:
+None
+
+==================================================
+JU: 2508009
+Address: 4027 University Ave, Des Moines, IA
+
+PHOTOS:
+- Solocator-2026-10-01 00-45-20.jpg
+- Solocator-2026-10-01 01-00-05.jpg
+
+STATUS: TRANSFER COMPLETED
+
+BILLING:
+WC1F x1
+
+NOTES:
+transfer completed

@@ -1,0 +1,10 @@
+Job Number: 07400073460200
+JU Record: 855918
+Address: 5526 NW 86 ST JOHNSTON
+Latitude: 41.66082686
+Longitude: -93.73662585
+Condition Code: CLR12LIGHT
+Condition Description: Communications Light Mast
+Inspection Condition: 1708055
+Status: NEW
+Complete: NO

@@ -1,0 +1,10 @@
+Job Number: 07400073460200
+JU Record: 900648
+Address: ACROSS FROM 1955 NE 58 AVE, POLK COUNTY, IA
+Latitude: 41.66611467
+Longitude: -93.58687789
+Condition Code: CLR30MIDSP
+Condition Description: < 30" AT MIDSPAN
+Inspection Condition: 2554371
+Status: NEW
+Complete: NO

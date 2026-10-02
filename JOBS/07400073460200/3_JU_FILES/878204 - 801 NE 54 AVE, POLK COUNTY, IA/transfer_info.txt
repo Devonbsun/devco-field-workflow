@@ -1,0 +1,10 @@
+Job Number: 07400073460200
+JU Record: 878204
+Address: 801 NE 54 AVE, POLK COUNTY, IA
+Latitude: 41.65868787
+Longitude: -93.60871524
+Condition Code: CLR40POLE
+Condition Description: < 40" AT POLE
+Inspection Condition: 2554343
+Status: NEW
+Complete: NO

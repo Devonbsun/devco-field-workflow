@@ -1,0 +1,10 @@
+Job Number: 07400073460200
+JU Record: 21523055
+Address: 5554 NE 22ND ST, POLK COUNTY, IA
+Latitude: 41.66111638
+Longitude: -93.58143794
+Condition Code: WIREDMG
+Condition Description: WIRE DAMAGED
+Inspection Condition: 2557334
+Status: NEW
+Complete: NO

@@ -1,0 +1,10 @@
+Job Number: 07400073460200
+JU Record: 878201
+Address: 5495 NE 6TH ST, DES MOINES, IA   SE SIDE OF LOT
+Latitude: 41.6606712
+Longitude: -93.6102512
+Condition Code: UGARDCVR
+Condition Description: NOT BONDED OR GROUNDED.
+Inspection Condition: 2557216
+Status: NEW
+Complete: NO

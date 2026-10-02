@@ -1,0 +1,10 @@
+Job Number: 07400073460200
+JU Record: 878210
+Address: 1050 NE 54 AVE, POLK COUNTY, IA
+Latitude: 41.65869321
+Longitude: -93.60554111
+Condition Code: CLR40POLE
+Condition Description: < 40" AT POLE
+Inspection Condition: 2554395
+Status: NEW
+Complete: NO

@@ -1,0 +1,10 @@
+Job Number: 07400073460200
+JU Record: 901001
+Address: 5332 NE 22 ST, POLK COUNTY
+Latitude: 41.65770641
+Longitude: -93.58144495
+Condition Code: CLR40POLE
+Condition Description: < 40" AT POLE
+Inspection Condition: 2554759
+Status: NEW
+Complete: NO

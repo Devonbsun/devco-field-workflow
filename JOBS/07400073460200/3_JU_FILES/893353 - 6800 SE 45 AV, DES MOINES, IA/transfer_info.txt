@@ -1,0 +1,10 @@
+Job Number: 07400073460200
+JU Record: 893353
+Address: 6800 SE 45 AV, DES MOINES, IA
+Latitude: 41.52152762
+Longitude: -93.52505453
+Condition Code: CLR40POLE
+Condition Description: CLR40POLE
+Inspection Condition: 2207880
+Status: NEW
+Complete: NO

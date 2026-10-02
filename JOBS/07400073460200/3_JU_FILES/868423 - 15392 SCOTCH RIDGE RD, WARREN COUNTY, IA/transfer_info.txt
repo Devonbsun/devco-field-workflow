@@ -1,0 +1,10 @@
+Job Number: 07400073460200
+JU Record: 868423
+Address: 15392 SCOTCH RIDGE RD, WARREN COUNTY, IA
+Latitude: 41.47732711
+Longitude: -93.51297336
+Condition Code: GUYMARK
+Condition Description: GUYMARK
+Inspection Condition: 2207796
+Status: NEW
+Complete: NO

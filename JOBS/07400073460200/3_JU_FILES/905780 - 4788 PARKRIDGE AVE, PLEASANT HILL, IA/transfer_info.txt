@@ -1,0 +1,10 @@
+Job Number: 07400073460200
+JU Record: 905780
+Address: 4788 PARKRIDGE AVE, PLEASANT HILL, IA
+Latitude: 41.58160656
+Longitude: -93.52001466
+Condition Code: CLR30MIDSP
+Condition Description: CLR30MIDSP - TOO CLOSE TO OTHER COMMS IN MIDSPAN
+Inspection Condition: 2204839
+Status: NEW
+Complete: NO

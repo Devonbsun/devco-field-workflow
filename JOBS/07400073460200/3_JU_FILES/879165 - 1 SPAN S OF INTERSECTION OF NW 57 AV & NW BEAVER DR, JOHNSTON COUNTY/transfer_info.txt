@@ -1,0 +1,10 @@
+Job Number: 07400073460200
+JU Record: 879165
+Address: 1 SPAN S OF INTERSECTION OF NW 57 AV & NW BEAVER DR, JOHNSTON COUNTY
+Latitude: 41.6634787
+Longitude: -93.68432013
+Condition Code: CLR40POLE
+Condition Description: CLR40POLE
+Inspection Condition: 2195962
+Status: NEW
+Complete: NO

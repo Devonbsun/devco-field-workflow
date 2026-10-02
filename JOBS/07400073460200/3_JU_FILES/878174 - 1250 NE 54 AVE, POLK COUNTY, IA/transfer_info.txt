@@ -1,0 +1,10 @@
+Job Number: 07400073460200
+JU Record: 878174
+Address: 1250 NE 54 AVE, POLK COUNTY, IA
+Latitude: 41.65869352
+Longitude: -93.60282038
+Condition Code: CLR40POLE
+Condition Description: < 40" AT POLE
+Inspection Condition: 2557375
+Status: NEW
+Complete: NO

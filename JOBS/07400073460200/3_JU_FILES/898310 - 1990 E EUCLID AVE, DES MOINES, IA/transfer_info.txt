@@ -1,0 +1,10 @@
+Job Number: 07400073460200
+JU Record: 898310
+Address: 1990 E EUCLID AVE, DES MOINES, IA
+Latitude: 41.62798345
+Longitude: -93.5812112
+Condition Code: CLR12LIGHT
+Condition Description: < 12" AT LIGHT MAST
+Inspection Condition: 2556929
+Status: NEW
+Complete: NO

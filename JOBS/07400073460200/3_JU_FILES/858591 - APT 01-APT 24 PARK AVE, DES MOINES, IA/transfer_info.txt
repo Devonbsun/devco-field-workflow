@@ -1,0 +1,10 @@
+Job Number: 07400073460200
+JU Record: 858591
+Address: APT 01-APT 24 PARK AVE, DES MOINES, IA
+Latitude: 41.55546235
+Longitude: -93.67817184
+Condition Code: CLRVERTSUPPLY
+Condition Description: Windstream pull slack out of span looking west for separation., Address: APT 01-APT 24 PARK AVE, DES
+Inspection Condition: 2445634
+Status: NEW
+Complete: NO

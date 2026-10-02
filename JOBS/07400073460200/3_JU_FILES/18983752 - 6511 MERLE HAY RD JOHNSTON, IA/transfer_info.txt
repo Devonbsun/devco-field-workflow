@@ -1,0 +1,10 @@
+Job Number: 07400073460200
+JU Record: 18983752
+Address: 6511 MERLE HAY RD JOHNSTON, IA
+Latitude: 41.67880586
+Longitude: -93.69755822
+Condition Code: GUYMSSNG
+Condition Description: , Address: 6511 MERLE HAY RD JOHNSTON, IA, Feature Type: POLE, GUYMSSNG: GUYMSSNG - MISSING GUYING,
+Inspection Condition: 2622142
+Status: NEW
+Complete: NO

@@ -1,0 +1,10 @@
+Job Number: 07400073460200
+JU Record: 12527788
+Address: 1 SPAN E OF NE CORNER OF 55 ST & UNIVERSITY AV, DES MOINES, IA
+Latitude: 41.60046558
+Longitude: -93.69251731
+Condition Code: CLRVERTSUPPLY
+Condition Description: WIND raise for separation., Address: 1 SPAN E OF NE CORNER OF 55 ST & UNIVERSITY AV, DES MOINES, IA,
+Inspection Condition: 2516476
+Status: NEW
+Complete: NO

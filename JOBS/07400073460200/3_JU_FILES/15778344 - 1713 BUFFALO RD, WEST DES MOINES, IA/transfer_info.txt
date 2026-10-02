@@ -1,0 +1,10 @@
+Job Number: 07400073460200
+JU Record: 15778344
+Address: 1713 BUFFALO RD, WEST DES MOINES, IA
+Latitude: 41.59869061
+Longitude: -93.72817467
+Condition Code: WIRERMV
+Condition Description: WIND remove unused drop., Address: 1713 BUFFALO RD, WEST DES MOINES, IA, Feature Type: POLE, WIRERMV
+Inspection Condition: 2509316
+Status: NEW
+Complete: NO

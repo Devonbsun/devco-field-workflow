@@ -1,0 +1,10 @@
+Job Number: 07400073460200
+JU Record: 886198
+Address: INTERSECTION OF 12 ST & WOODLAND AV, DES MOINES
+Latitude: 41.58809385
+Longitude: -93.63353563
+Condition Code: CLR40POLE
+Condition Description: CLR40POLE
+Inspection Condition: 2192880
+Status: NEW
+Complete: NO

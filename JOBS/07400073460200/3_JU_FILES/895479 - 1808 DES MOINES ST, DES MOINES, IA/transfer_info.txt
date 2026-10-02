@@ -1,0 +1,10 @@
+Job Number: 07400073460200
+JU Record: 895479
+Address: 1808 DES MOINES ST, DES MOINES, IA
+Latitude: 41.59649557
+Longitude: -93.58652746
+Condition Code: CLRVERTSUPPLY
+Condition Description: WIND lower for separation., Address: 1808 DES MOINES ST, DES MOINES, IA, Feature Type: POLE, CLRVERT
+Inspection Condition: 2590364
+Status: NEW
+Complete: NO

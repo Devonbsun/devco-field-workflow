@@ -1,0 +1,10 @@
+Job Number: 07400073460200
+JU Record: 863337
+Address: 1601 73 ST, WINDSOR HEIGHTS, IA
+Latitude: 41.6085674
+Longitude: -93.71777503
+Condition Code: CLR30MIDSP
+Condition Description: Communications Midspan
+Inspection Condition: 1706965
+Status: NEW
+Complete: NO

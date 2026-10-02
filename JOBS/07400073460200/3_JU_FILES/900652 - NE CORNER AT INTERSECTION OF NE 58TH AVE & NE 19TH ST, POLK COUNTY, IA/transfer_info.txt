@@ -1,0 +1,10 @@
+Job Number: 07400073460200
+JU Record: 900652
+Address: NE CORNER AT INTERSECTION OF NE 58TH AVE & NE 19TH ST, POLK COUNTY, IA
+Latitude: 41.6660992
+Longitude: -93.58828262
+Condition Code: CLR40POLE
+Condition Description: < 40" AT POLE
+Inspection Condition: 2557059
+Status: NEW
+Complete: NO

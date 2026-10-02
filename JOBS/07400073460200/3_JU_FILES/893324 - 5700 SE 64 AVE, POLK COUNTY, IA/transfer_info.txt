@@ -1,0 +1,10 @@
+Job Number: 07400073460200
+JU Record: 893324
+Address: 5700 SE 64 AVE, POLK COUNTY, IA
+Latitude: 41.5239269
+Longitude: -93.4982247
+Condition Code: GUYBRK
+Condition Description: GUYBRK
+Inspection Condition: 2207870
+Status: NEW
+Complete: NO

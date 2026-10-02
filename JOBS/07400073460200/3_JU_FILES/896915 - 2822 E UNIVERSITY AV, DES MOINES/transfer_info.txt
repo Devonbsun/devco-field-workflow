@@ -1,0 +1,10 @@
+Job Number: 07400073460200
+JU Record: 896915
+Address: 2822 E UNIVERSITY AV, DES MOINES
+Latitude: 41.60065817
+Longitude: -93.56127191
+Condition Code: GUYBRK
+Condition Description: Broken Guy Wire
+Inspection Condition: 2557031
+Status: NEW
+Complete: NO

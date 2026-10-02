@@ -1,0 +1,10 @@
+Job Number: 07400073460200
+JU Record: 866464
+Address: 5660 NW BEAVER DR, JOHNSTON
+Latitude: 41.66285395
+Longitude: -93.68455436
+Condition Code: GRDMLD
+Condition Description: GRDMLD
+Inspection Condition: 2195757
+Status: NEW
+Complete: NO

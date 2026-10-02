@@ -1,0 +1,9 @@
+#!/data/data/com.termux/files/usr/bin/bash
+
+echo ""
+echo "======================================"
+echo "   DEVCO POLE TRANSFER FIELD MODE"
+echo "======================================"
+echo ""
+
+python ~/pole_workflow.py

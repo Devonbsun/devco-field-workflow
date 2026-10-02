@@ -1,0 +1,10 @@
+Job Number: 07400073460200
+JU Record: 908949
+Address: 8900 NE 72ND ST, POLK COUNTY, IA
+Latitude: 41.72239338
+Longitude: -93.46454728
+Condition Code: CLR12LOOP
+Condition Description: < 12" AT DRIP LOOP
+Inspection Condition: 2554540
+Status: NEW
+Complete: NO

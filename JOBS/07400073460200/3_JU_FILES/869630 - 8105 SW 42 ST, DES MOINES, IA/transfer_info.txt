@@ -1,0 +1,10 @@
+Job Number: 07400073460200
+JU Record: 869630
+Address: 8105 SW 42 ST, DES MOINES, IA
+Latitude: 41.51214417
+Longitude: -93.6708898
+Condition Code: CLRVERTSUPPLY
+Condition Description: WIND lower for separation., Address: 8105 SW 42 ST, DES MOINES, IA, Feature Type: POLE, CLRVERTSUPPL
+Inspection Condition: 2458145
+Status: NEW
+Complete: NO

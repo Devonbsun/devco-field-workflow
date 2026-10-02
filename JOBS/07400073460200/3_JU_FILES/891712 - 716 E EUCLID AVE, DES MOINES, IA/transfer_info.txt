@@ -1,0 +1,10 @@
+Job Number: 07400073460200
+JU Record: 891712
+Address: 716 E EUCLID AVE, DES MOINES, IA
+Latitude: 41.62777647
+Longitude: -93.60883473
+Condition Code: CLR30MIDSP
+Condition Description: Communications Midspan
+Inspection Condition: 1708035
+Status: NEW
+Complete: NO

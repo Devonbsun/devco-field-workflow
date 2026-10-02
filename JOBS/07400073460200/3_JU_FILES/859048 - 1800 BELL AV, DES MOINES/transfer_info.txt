@@ -1,0 +1,10 @@
+Job Number: 07400073460200
+JU Record: 859048
+Address: 1800 BELL AV, DES MOINES
+Latitude: 41.56264606
+Longitude: -93.64179549
+Condition Code: CLR40POLE
+Condition Description: Communications at Pole
+Inspection Condition: 1708047
+Status: NEW
+Complete: NO

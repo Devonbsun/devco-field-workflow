@@ -1,0 +1,10 @@
+Job Number: 07400073460200
+JU Record: 4349425
+Address: 310 SE 7 ST, DES MOINES, IA
+Latitude: 41.58449008
+Longitude: -93.60644976
+Condition Code: CLRVERTSUPPLY
+Condition Description: WIND lower for separation., Address: 310 SE 7 ST, DES MOINES, IA, Feature Type: POLE, CLRVERTSUPPLY:
+Inspection Condition: 2493468
+Status: NEW
+Complete: NO

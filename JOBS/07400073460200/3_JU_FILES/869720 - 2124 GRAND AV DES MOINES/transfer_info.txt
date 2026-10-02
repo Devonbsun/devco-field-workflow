@@ -1,0 +1,10 @@
+Job Number: 07400073460200
+JU Record: 869720
+Address: 2124 GRAND AV DES MOINES
+Latitude: 41.58387116
+Longitude: -93.64605709
+Condition Code: WIRERMV
+Condition Description: WIRERMV
+Inspection Condition: 2194631
+Status: NEW
+Complete: NO

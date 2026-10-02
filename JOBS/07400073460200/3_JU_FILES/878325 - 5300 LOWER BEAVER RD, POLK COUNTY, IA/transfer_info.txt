@@ -1,0 +1,10 @@
+Job Number: 07400073460200
+JU Record: 878325
+Address: 5300 LOWER BEAVER RD, POLK COUNTY, IA
+Latitude: 41.64644
+Longitude: -93.67297253
+Condition Code: CLR40POLE
+Condition Description: CLR40POLE
+Inspection Condition: 2195846
+Status: NEW
+Complete: NO

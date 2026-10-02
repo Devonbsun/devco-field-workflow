@@ -1,0 +1,32 @@
+JU Record: 2473040
+Address: 2832 Park Ave, Des Moines, IA
+GPS navigation: https://www.google.com/maps/dir/?api=1&destination=41.55553096,-93.65564918&travelmode=driving&dir_action=navigate
+
+Stop: 47
+Pole FID: 22172169
+JU Record: 2473040
+Work order: 07400073460212
+Licensee Name: WINDSTREAM
+Licensee Application Name: POLE TRANSFER
+Application Description: Pole Transfer Request  41.5555309600 -93.6556491800
+Permit status: APPROVED
+Status Date: 2026-02-25 10:17:19
+JU Type: NEWPERMIT
+JU Subtype: None
+Create Date: 2026-02-25 10:17:19
+City: DES MOINES
+State: IA
+Service Area: DM
+Source address: 2832  PARK AVE, DES MOINES, IA
+Latitude: 41.55553096
+Longitude: -93.65564918
+Area: Park Avenue
+Source row: 44
+Source file: 07400073460212 ~Des Moines IA Pole Transfers.xlsx
+Source sheet: Sheet1
+
+Notes:
+
+Billing codes:
+
+Photos / documents:

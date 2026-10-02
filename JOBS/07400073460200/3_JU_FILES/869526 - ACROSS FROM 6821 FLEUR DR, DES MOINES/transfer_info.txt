@@ -1,0 +1,10 @@
+Job Number: 07400073460200
+JU Record: 869526
+Address: ACROSS FROM 6821 FLEUR DR, DES MOINES
+Latitude: 41.52161085
+Longitude: -93.64515358
+Condition Code: CLRVERTSUPPLY
+Condition Description: Windstream pull slack out of span for separation., Address: ACROSS FROM 6821 FLEUR DR, DES MOINES, F
+Inspection Condition: 2441360
+Status: NEW
+Complete: NO

@@ -1,0 +1,10 @@
+Job Number: 07400073460200
+JU Record: 904928
+Address: 3555 DUBUQUE AVE, DES MOINES, IA
+Latitude: 41.60425167
+Longitude: -93.5460995
+Condition Code: GUYMARK
+Condition Description: Install guy guard.
+Inspection Condition: 1977093
+Status: NEW
+Complete: NO

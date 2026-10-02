@@ -1,0 +1,10 @@
+Job Number: 07400073460200
+JU Record: 900305
+Address: 1588 NE 58 AV POLK COUNTY
+Latitude: 41.66603668
+Longitude: -93.59648827
+Condition Code: CLR40POLE
+Condition Description: < 40" AT POLE
+Inspection Condition: 2557309
+Status: NEW
+Complete: NO

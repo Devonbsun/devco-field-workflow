@@ -1,0 +1,10 @@
+Job Number: 07400073460200
+JU Record: 900665
+Address: 5725 NE 22 ST POLK COUNTY
+Latitude: 41.6643714
+Longitude: -93.58143164
+Condition Code: CLR40POLE
+Condition Description: < 40" AT POLE
+Inspection Condition: 2554615
+Status: NEW
+Complete: NO

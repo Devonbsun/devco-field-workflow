@@ -1,0 +1,10 @@
+Job Number: 07400073460200
+JU Record: 872324
+Address: 911 18 ST DES MOINES
+Latitude: 41.59377548
+Longitude: -93.6407229
+Condition Code: CLR30MIDSP
+Condition Description: CLR30MIDSP
+Inspection Condition: 2192857
+Status: NEW
+Complete: NO

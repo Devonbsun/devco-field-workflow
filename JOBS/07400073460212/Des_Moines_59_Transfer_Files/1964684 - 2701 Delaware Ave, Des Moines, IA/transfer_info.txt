@@ -1,0 +1,34 @@
+JU Record: 1964684
+Address: 2701 Delaware Ave, Des Moines, IA
+GPS navigation: https://www.google.com/maps/dir/?api=1&destination=41.62007153,-93.58122258&travelmode=driving&dir_action=navigate
+
+Stop: 11
+Pole FID: 22316597
+JU Record: 1964684
+Work order: 07400073460212
+Licensee Name: WINDSTREAM
+Licensee Application Name: POLE TRANSFER
+Application Description: Pole Transfer Request  41.6200715300 -93.5812225800
+Permit status: APPROVED
+Status Date: 2025-03-31 23:01:12
+JU Type: NEWPERMIT
+JU Subtype: None
+Create Date: 2025-03-31 23:01:11
+City: DES MOINES
+State: IA
+Service Area: DM
+Source address: 2701  DELAWARE AVE,
+     DES MOINES,
+     IA
+Latitude: 41.62007153
+Longitude: -93.58122258
+Area: Delaware Avenue
+Source row: 8
+Source file: 07400073460212 ~Des Moines IA Pole Transfers.xlsx
+Source sheet: Sheet1
+
+Notes:
+
+Billing codes:
+
+Photos / documents:

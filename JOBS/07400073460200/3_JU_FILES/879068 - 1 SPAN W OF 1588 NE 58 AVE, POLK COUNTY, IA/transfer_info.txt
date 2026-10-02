@@ -1,0 +1,10 @@
+Job Number: 07400073460200
+JU Record: 879068
+Address: 1 SPAN W OF 1588 NE 58 AVE, POLK COUNTY, IA
+Latitude: 41.66603023
+Longitude: -93.59698301
+Condition Code: CLR30MIDSP
+Condition Description: < 30" AT MIDSPAN
+Inspection Condition: 2557323
+Status: NEW
+Complete: NO

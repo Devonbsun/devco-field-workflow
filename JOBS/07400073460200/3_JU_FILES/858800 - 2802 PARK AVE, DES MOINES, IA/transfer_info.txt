@@ -1,0 +1,10 @@
+Job Number: 07400073460200
+JU Record: 858800
+Address: 2802 PARK AVE, DES MOINES, IA
+Latitude: 41.55540521
+Longitude: -93.65419049
+Condition Code: WIREUNSEC
+Condition Description: WIND secure excess wire., Address: 2802 PARK AVE, DES MOINES, IA, Feature Type: POLE, WIREUNSEC: WIR
+Inspection Condition: 2508093
+Status: NEW
+Complete: NO

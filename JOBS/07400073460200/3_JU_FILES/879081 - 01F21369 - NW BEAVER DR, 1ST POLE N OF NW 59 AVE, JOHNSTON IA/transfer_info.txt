@@ -1,0 +1,10 @@
+Job Number: 07400073460200
+JU Record: 879081
+Address: 01F21369 - NW BEAVER DR, 1ST POLE N OF NW 59 AVE, JOHNSTON IA
+Latitude: 41.66727609
+Longitude: -93.68247984
+Condition Code: CLR40POLE
+Condition Description: CLR40POLE
+Inspection Condition: 2195945
+Status: NEW
+Complete: NO

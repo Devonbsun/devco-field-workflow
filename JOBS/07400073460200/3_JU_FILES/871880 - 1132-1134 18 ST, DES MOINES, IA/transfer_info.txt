@@ -1,0 +1,10 @@
+Job Number: 07400073460200
+JU Record: 871880
+Address: 1132-1134 18 ST, DES MOINES, IA
+Latitude: 41.59869666
+Longitude: -93.6419337
+Condition Code: WIRERMV
+Condition Description: REMOVE UNUSED DROPS<br/>Feature Type:	POLE<br/>WIRERMV:	WIRERMV - WIRE REMOVE<br/>Facility State:	I
+Inspection Condition: 2110538
+Status: NEW
+Complete: NO

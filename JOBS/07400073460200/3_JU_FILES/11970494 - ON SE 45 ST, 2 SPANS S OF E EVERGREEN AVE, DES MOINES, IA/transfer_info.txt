@@ -1,0 +1,10 @@
+Job Number: 07400073460200
+JU Record: 11970494
+Address: ON SE 45 ST, 2 SPANS S OF E EVERGREEN AVE, DES MOINES, IA
+Latitude: 41.54244762
+Longitude: -93.52518843
+Condition Code: CLR40POLE
+Condition Description: CLR40POLE
+Inspection Condition: 2207951
+Status: NEW
+Complete: NO

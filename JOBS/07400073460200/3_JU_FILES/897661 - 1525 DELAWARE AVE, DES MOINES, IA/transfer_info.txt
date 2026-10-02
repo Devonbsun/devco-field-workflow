@@ -1,0 +1,10 @@
+Job Number: 07400073460200
+JU Record: 897661
+Address: 1525 DELAWARE AVE, DES MOINES, IA
+Latitude: 41.60749164
+Longitude: -93.58116352
+Condition Code: WIREUNSEC
+Condition Description: WIND attach to pole-floating., Address: 1525 DELAWARE AVE, DES MOINES, IA, Feature Type: POLE, WIREU
+Inspection Condition: 2531424
+Status: NEW
+Complete: NO

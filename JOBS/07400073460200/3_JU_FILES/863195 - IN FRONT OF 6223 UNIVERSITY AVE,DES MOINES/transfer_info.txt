@@ -1,0 +1,10 @@
+Job Number: 07400073460200
+JU Record: 863195
+Address: IN FRONT OF 6223 UNIVERSITY AVE,DES MOINES
+Latitude: 41.60052468
+Longitude: -93.70310858
+Condition Code: CLR12LIGHT
+Condition Description: Communications Light Mast
+Inspection Condition: 1706956
+Status: NEW
+Complete: NO

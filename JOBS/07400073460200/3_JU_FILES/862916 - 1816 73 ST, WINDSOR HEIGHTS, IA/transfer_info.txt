@@ -1,0 +1,10 @@
+Job Number: 07400073460200
+JU Record: 862916
+Address: 1816 73 ST, WINDSOR HEIGHTS, IA
+Latitude: 41.61043628
+Longitude: -93.71790577
+Condition Code: CLRVERTSUPPLY
+Condition Description: WIND lower to below MNT., Address: 1816 73 ST, WINDSOR HEIGHTS, IA, Feature Type: POLE, CLRVERTSUPPL
+Inspection Condition: 2508319
+Status: NEW
+Complete: NO

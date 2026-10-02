@@ -1,0 +1,10 @@
+Job Number: 07400073460200
+JU Record: 11612591
+Address: 5148 E UNIVERSITY AVE, PLEASANT HILL, IA
+Latitude: 41.60069944
+Longitude: -93.51303308
+Condition Code: GUYMSSNG
+Condition Description: WS - INSTALL DOWN GUY AND ANCHOR, Address: 5148 E UNIVERSITY AVE, PLEASANT HILL, IA, Feature Type: P
+Inspection Condition: 2444346
+Status: NEW
+Complete: NO

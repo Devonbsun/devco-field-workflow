@@ -1,0 +1,10 @@
+Job Number: 07400073460200
+JU Record: 21550288
+Address: 1 SPAN EAST OF 4819 WATERBURY RD, DES MOINES, IA
+Latitude: 41.58641724
+Longitude: -93.68372967
+Condition Code: WIREDMG
+Condition Description: WIREDMG
+Inspection Condition: 2202515
+Status: NEW
+Complete: NO

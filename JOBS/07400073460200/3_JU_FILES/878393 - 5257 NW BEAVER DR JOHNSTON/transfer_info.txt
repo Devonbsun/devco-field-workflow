@@ -1,0 +1,10 @@
+Job Number: 07400073460200
+JU Record: 878393
+Address: 5257 NW BEAVER DR JOHNSTON
+Latitude: 41.65697529
+Longitude: -93.68414237
+Condition Code: CLR40POLE
+Condition Description: CLR40POLE
+Inspection Condition: 2195868
+Status: NEW
+Complete: NO

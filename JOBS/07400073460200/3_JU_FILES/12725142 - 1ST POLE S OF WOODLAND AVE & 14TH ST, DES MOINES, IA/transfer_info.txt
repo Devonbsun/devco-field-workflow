@@ -1,0 +1,10 @@
+Job Number: 07400073460200
+JU Record: 12725142
+Address: 1ST POLE S OF WOODLAND AVE & 14TH ST, DES MOINES, IA
+Latitude: 41.58786289
+Longitude: -93.63526337
+Condition Code: CLR30MIDSP
+Condition Description: CLR30MIDSP
+Inspection Condition: 2192897
+Status: NEW
+Complete: NO

@@ -1,0 +1,10 @@
+Job Number: 07400073460200
+JU Record: 11970417
+Address: 4600 SE 45 ST, DES MOINES, IA
+Latitude: 41.54319462
+Longitude: -93.52504996
+Condition Code: CLR12LIGHT
+Condition Description: CLR12LIGHT
+Inspection Condition: 2207947
+Status: NEW
+Complete: NO

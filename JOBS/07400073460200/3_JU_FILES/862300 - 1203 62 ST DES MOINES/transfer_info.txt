@@ -1,0 +1,10 @@
+Job Number: 07400073460200
+JU Record: 862300
+Address: 1203 62 ST DES MOINES
+Latitude: 41.60048301
+Longitude: -93.70244961
+Condition Code: CLR12LIGHT
+Condition Description: Communications Light Mast
+Inspection Condition: 1706954
+Status: NEW
+Complete: NO

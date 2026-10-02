@@ -1,0 +1,10 @@
+Job Number: 07400073460200
+JU Record: 869623
+Address: 1 SPAN S/COMMERCE PARK RD & FLEUR DR, DES MOINES
+Latitude: 41.5174947
+Longitude: -93.64515427
+Condition Code: CLR30MIDSP
+Condition Description: MIDSPAN VIOLATION WITH POWER
+Inspection Condition: 1708045
+Status: NEW
+Complete: NO

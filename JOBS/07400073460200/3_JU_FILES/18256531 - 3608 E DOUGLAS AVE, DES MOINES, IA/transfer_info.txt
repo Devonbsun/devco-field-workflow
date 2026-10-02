@@ -1,0 +1,10 @@
+Job Number: 07400073460200
+JU Record: 18256531
+Address: 3608  E DOUGLAS AVE, DES MOINES, IA
+Latitude: 41.6296262
+Longitude: -93.54577762
+Condition Code: WIREUNSEC
+Condition Description: WIND attach to pole--floating., Address: 3608  E DOUGLAS AVE, DES MOINES, IA, Feature Type: POLE, WI
+Inspection Condition: 2530278
+Status: NEW
+Complete: NO

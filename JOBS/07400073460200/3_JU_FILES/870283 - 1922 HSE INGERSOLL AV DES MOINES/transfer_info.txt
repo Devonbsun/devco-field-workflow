@@ -1,0 +1,10 @@
+Job Number: 07400073460200
+JU Record: 870283
+Address: 1922 HSE INGERSOLL AV DES MOINES
+Latitude: 41.58562996
+Longitude: -93.64347632
+Condition Code: CLR30MIDSP
+Condition Description: CLR30MIDSP
+Inspection Condition: 2193959
+Status: NEW
+Complete: NO

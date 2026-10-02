@@ -1,0 +1,32 @@
+JU Record: 2614145
+Address: 308 E Park Ave, Des Moines, IA
+GPS navigation: https://www.google.com/maps/dir/?api=1&destination=41.55543255,-93.61096652&travelmode=driving&dir_action=navigate
+
+Stop: 40
+Pole FID: 22508621
+JU Record: 2614145
+Work order: 07400073460212
+Licensee Name: WINDSTREAM
+Licensee Application Name: POLE TRANSFER
+Application Description: Pole Transfer Request  41.5554325500 -93.6109665200
+Permit status: APPROVED
+Status Date: 2026-06-23 08:13:25
+JU Type: NEWPERMIT
+JU Subtype: None
+Create Date: 2026-06-23 08:13:25
+City: DES MOINES
+State: IA
+Service Area: DM
+Source address: 308  E PARK AVE, DES MOINES, IA
+Latitude: 41.55543255
+Longitude: -93.61096652
+Area: East Park Avenue
+Source row: 62
+Source file: 07400073460212 ~Des Moines IA Pole Transfers.xlsx
+Source sheet: Sheet1
+
+Notes:
+
+Billing codes:
+
+Photos / documents:

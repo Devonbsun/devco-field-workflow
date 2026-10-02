@@ -1,0 +1,10 @@
+Job Number: 07400073460200
+JU Record: 18409353
+Address: WEST OF 3853 HUBBELL AVE. DES MOINES, IA
+Latitude: 41.63100943
+Longitude: -93.5407315
+Condition Code: CLRVERTSUPPLY
+Condition Description: WIND lower for separation from MNT., Address: WEST OF 3853 HUBBELL AVE. DES MOINES, IA, Feature Type
+Inspection Condition: 2530238
+Status: NEW
+Complete: NO

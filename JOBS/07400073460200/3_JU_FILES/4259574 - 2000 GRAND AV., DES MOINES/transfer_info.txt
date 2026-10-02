@@ -1,0 +1,10 @@
+Job Number: 07400073460200
+JU Record: 4259574
+Address: 2000 GRAND AV., DES MOINES
+Latitude: 41.58364946
+Longitude: -93.64409915
+Condition Code: WIRERMV
+Condition Description: WIRERMV
+Inspection Condition: 2194643
+Status: NEW
+Complete: NO

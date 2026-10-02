@@ -1,0 +1,10 @@
+Job Number: 07400073460200
+JU Record: 19298740
+Address: 1400 NE 58 AVE, POLK COUNTY, IA
+Latitude: 41.66601106
+Longitude: -93.59985314
+Condition Code: CLR40POLE
+Condition Description: < 40" AT POLE
+Inspection Condition: 2554470
+Status: NEW
+Complete: NO

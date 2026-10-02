@@ -1,0 +1,32 @@
+JU Record: 2594045
+Address: 3850 NE 46th St, Polk County, IA
+GPS navigation: https://www.google.com/maps/dir/?api=1&destination=41.63043319,-93.52242987&travelmode=driving&dir_action=navigate
+
+Stop: 4
+Pole FID: 22444350
+JU Record: 2594045
+Work order: 07400073460212
+Licensee Name: WINDSTREAM
+Licensee Application Name: POLE TRANSFER
+Application Description: Pole Transfer Request  41.6304331900 -93.5224298700
+Permit status: APPROVED
+Status Date: 2026-06-04 02:07:23
+JU Type: NEWPERMIT
+JU Subtype: None
+Create Date: 2026-06-04 02:07:23
+City: DES MOINES
+State: IA
+Service Area: DM
+Source address: 3850 NE 46 ST, POLK COUNTY, IA
+Latitude: 41.63043319
+Longitude: -93.52242987
+Area: East 46th Street
+Source row: 6
+Source file: 07400073460212 ~Des Moines IA Pole Transfers.xlsx
+Source sheet: Sheet1
+
+Notes:
+
+Billing codes:
+
+Photos / documents:

@@ -1,0 +1,10 @@
+Job Number: 07400073460200
+JU Record: 4287067
+Address: 2 SPANS W OF 1400 NE 58 AV, DES MOINES
+Latitude: 41.66602145
+Longitude: -93.59892639
+Condition Code: CLR40POLE
+Condition Description: < 40" AT POLE
+Inspection Condition: 2556962
+Status: NEW
+Complete: NO

@@ -1,0 +1,10 @@
+Job Number: 07400073460200
+JU Record: 866452
+Address: IN FRONT OF 4801 NW 55TH AVE, JOHNSTON, IA
+Latitude: 41.66093827
+Longitude: -93.68490797
+Condition Code: WIRERMV
+Condition Description: WIRERMV
+Inspection Condition: 2195752
+Status: NEW
+Complete: NO

@@ -1,0 +1,10 @@
+Job Number: 07400073460200
+JU Record: 18256539
+Address: 3533 E DOUGLAS AVE, DES MOINES, IA
+Latitude: 41.62961981
+Longitude: -93.54696482
+Condition Code: WIREUNSEC
+Condition Description: WIND attach to pole., Address: 3533 E DOUGLAS AVE, DES MOINES, IA, Feature Type: POLE, WIREUNSEC: WI
+Inspection Condition: 2530290
+Status: NEW
+Complete: NO

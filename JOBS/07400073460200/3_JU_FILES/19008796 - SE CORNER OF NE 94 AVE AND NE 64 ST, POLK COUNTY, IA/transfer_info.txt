@@ -1,0 +1,10 @@
+Job Number: 07400073460200
+JU Record: 19008796
+Address: SE CORNER OF NE 94 AVE AND NE 64 ST, POLK COUNTY, IA
+Latitude: 41.73165931
+Longitude: -93.48352554
+Condition Code: CLR40POLE
+Condition Description: < 40" AT POLE
+Inspection Condition: 2554856
+Status: NEW
+Complete: NO
