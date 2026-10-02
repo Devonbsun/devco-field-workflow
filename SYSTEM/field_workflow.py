@@ -425,8 +425,8 @@ def main():
         return
 
     print()
-    print("Waiting for Solocator photos...")
-    print("CTRL+C stops Field Mode.")
+    print("Waiting for Solocator photos...", flush=True)
+    print("CTRL+C stops Field Mode.", flush=True)
     print()
 
     current_pole = None
