@@ -1,7 +1,8 @@
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import parse_qs, urlparse
-import html, json, os, subprocess, threading
+import html, json, os, subprocess, threading, zipfile
+import xml.etree.ElementTree as ET
 ROOT=Path.home()/"DEVCO_FIELD"; JOBS=ROOT/"JOBS"; STATE=ROOT/".devco_app_state.json"
 lock=threading.Lock(); field_proc=None; active_job=None; active_ju=None
 
@@ -28,6 +29,46 @@ def ju_points(job):
             pass
     return out
 
+
+def route_points(job):
+    xlsx=JOBS/job/"2_ROUTE"/f"{job}_ROUTE.xlsx"
+    if not xlsx.exists(): return []
+    try:
+        with zipfile.ZipFile(xlsx) as z:
+            root=ET.fromstring(z.read("xl/worksheets/sheet1.xml"))
+            ns={"m":"http://schemas.openxmlformats.org/spreadsheetml/2006/main"}
+            rows=[]
+            for row in root.findall(".//m:row",ns):
+                vals={}
+                for c in row.findall("m:c",ns):
+                    ref=c.get("r",""); col=''.join(x for x in ref if x.isalpha())
+                    v=c.find("m:v",ns)
+                    inline=c.find("m:is/m:t",ns)
+                    vals[col]=(inline.text if inline is not None else (v.text if v is not None else ""))
+                if vals.get("B") and vals.get("D") and vals.get("E") and vals.get("B")!="JU":
+                    try: rows.append({"stop":vals.get("A",""),"ju":str(vals["B"]),"address":vals.get("C",""),"lat":float(vals["D"]),"lon":float(vals["E"])})
+                    except: pass
+            return rows
+    except Exception: return []
+
+def route40(job):
+    route=route_points(job); existing={x["ju"]:x for x in ju_points(job)}
+    usable=[r for r in route if r["ju"] in existing]
+    if not usable: return []
+    start=0
+    if active_ju:
+        for i,r in enumerate(usable):
+            if r["ju"]==active_ju: start=i; break
+    else:
+        for i,r in enumerate(usable):
+            if not existing[r["ju"]]["done"]: start=i; break
+    out=[]
+    for r in usable[start:]+usable[:start]:
+        if not existing[r["ju"]]["done"]:
+            out.append(r)
+            if len(out)==40: break
+    return out
+
 def map_page():
     js=jobs(); selected=active_job or (js[0] if js else "")
     points=ju_points(selected) if selected else []
@@ -36,15 +77,22 @@ def map_page():
 <title>DEVCO Map</title>
 <link rel="stylesheet" href="/static/leaflet.css">
 <style>html,body,#map{{height:100%;margin:0}}body{{font-family:system-ui}}#bar{{position:absolute;z-index:1000;top:10px;left:10px;right:10px;background:#071019ee;padding:12px;border-radius:16px;border:1px solid #314653;box-shadow:0 8px 24px #0008;color:white;display:flex;gap:8px;align-items:center}}#bar a{{color:white;text-decoration:none;background:#26384b;padding:10px 12px;border-radius:10px}}#bar span{{flex:1}}.nav,.activate{{display:inline-block;padding:9px 12px;background:#36c275;color:#07140d!important;border-radius:9px;text-decoration:none;font-weight:700;border:0;margin:3px}}.activate{{background:#168cff;color:white!important}}</style></head>
-<body><div id="bar"><a href="/">← Dashboard</a><span><b>{html.escape(selected)}</b> · {len(points)} JUs · <b>GPS/OFFLINE READY</b></span></div><div id="map"></div>
+<body><div id="bar"><a href="/">← Dashboard</a><span><b>{html.escape(selected)}</b> · {len(points)} JUs · <b>{len(route)}-STOP ROUTE</b> · <b>GPS/OFFLINE READY</b></span></div><div id="map"></div>
 <script src="/static/leaflet.js"></script><script>
-const pts={data}; const map=L.map('map');
+const pts={data}; const route={route_data}; const map=L.map('map');
 const tiles=L.tileLayer('https://{{s}}.tile.openstreetmap.org/{{z}}/{{x}}/{{y}}.png',{{maxZoom:20,attribution:'© OpenStreetMap'}});
 if(navigator.onLine) tiles.addTo(map);
 map.getContainer().style.background='#101b23';
 window.addEventListener('online',()=>{{if(!map.hasLayer(tiles))tiles.addTo(map)}});
 window.addEventListener('offline',()=>{{if(map.hasLayer(tiles))map.removeLayer(tiles)}});
 const bounds=[];
+if(route.length){{
+  const line=route.map(r=>[r.lat,r.lon]);
+  L.polyline(line,{{color:'#20e66b',weight:5,opacity:.85}}).addTo(map);
+  route.forEach((r,i)=>{{
+    L.marker([r.lat,r.lon],{{icon:L.divIcon({{className:'',html:'<div style="width:28px;height:28px;border-radius:50%;background:#071019;color:#20e66b;border:2px solid #20e66b;display:grid;place-items:center;font:900 12px system-ui;box-shadow:0 2px 8px #000">'+(i+1)+'</div>',iconSize:[28,28],iconAnchor:[14,14]}})}}).addTo(map).bindTooltip('Stop '+(i+1)+' · JU '+r.ju);
+  }});
+}}
 pts.forEach(p=>{{let m=L.circleMarker([p.lat,p.lon],{{radius:p.done?7:9,color:p.done?'#6b7b88':'#e53935',fillColor:p.done?'#6b7b88':'#ff3b30',fillOpacity:.9,weight:3}}).addTo(map);
 let nav='https://www.google.com/maps/dir/?api=1&destination='+p.lat+','+p.lon+'&travelmode=driving';
 m.bindPopup('<b>JU '+p.ju+'</b><br>'+p.address+'<br><b>'+(p.done?'COMPLETED':'NOT COMPLETE')+'</b><br><br><form method="post" action="/activate" style="display:inline"><input type="hidden" name="ju" value="'+p.ju+'"><button class="activate">Make Active JU</button></form><a class="nav" href="'+nav+'">Navigate</a>'); bounds.push([p.lat,p.lon]);}});
@@ -89,7 +137,7 @@ def page(msg=""):
     active=next((x for x in ju_points(selected) if x["ju"]==active_ju),None) if active_ju and selected else None
     if active:
         nav=f'https://www.google.com/maps/dir/?api=1&destination={active["lat"]},{active["lon"]}&travelmode=driving'
-        active_html=f'<section class="hero"><div class="eyebrow">ACTIVE JU</div><div class="ju">{html.escape(active["ju"])}</div><div class="addr">📍 {html.escape(active["address"])}</div><div class="pill">{"✓ COMPLETED" if active["done"] else "● INCOMPLETE"}</div><div class="actions"><a class="primary" href="/hone">⌖ Hone In</a><a class="secondary" href="{nav}">➤ Navigate</a></div></section>'
+        active_html=f'<section class="hero"><div class="eyebrow">ACTIVE JU</div><div class="ju">{html.escape(active["ju"])}</div><div class="addr">📍 {html.escape(active["address"])}</div><div class="pill">{"✓ COMPLETED" if active["done"] else "● INCOMPLETE"}</div><div class="actions"><a class="primary" href="/hone">⌖ Hone In</a><a class="secondary" href="/map">➤ Route 40</a></div></section>'
     else: active_html='<section class="hero"><div class="eyebrow">ACTIVE JU</div><div class="ju">No JU selected</div><div class="addr">Open the map and choose a pole to begin.</div><a class="primary wide" href="/map">Open Job Map</a></section>'
     return f"""<!doctype html><html><head><meta name="viewport" content="width=device-width,initial-scale=1"><title>DEVCO Field</title><style>
 *{{box-sizing:border-box}}html,body{{margin:0;background:#050b10;color:#f5f9fc;font-family:system-ui}}body{{background:radial-gradient(circle at top,#123044,#07131b 38%,#050b10 70%);min-height:100vh;padding-bottom:80px}}main{{max-width:600px;margin:auto;padding:16px}}.top{{display:flex;justify-content:space-between;align-items:center;padding:8px 2px 15px}}.brand{{font-size:27px;font-weight:900}}.brand b{{color:#20e66b}}.signal{{font-size:11px;color:#20e66b;border:1px solid #18743b;background:#092618;padding:7px 9px;border-radius:99px}}.card,.job,.hero,.tool,.mode,.stat{{background:linear-gradient(145deg,#10212c,#09151d);border:1px solid #263d49;box-shadow:0 10px 28px #0007}}.job,.hero,.mode{{border-radius:19px;padding:15px}}.job form{{display:flex;gap:8px}}select{{flex:1;min-width:0;background:#132630;color:white;border:1px solid #334b58;border-radius:12px;padding:13px;font-size:15px;font-weight:700}}button{{border:0;border-radius:11px;padding:12px 14px;font-weight:850}}.job button{{background:#203642;color:white}}.stats{{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin:11px 0 14px}}.stat{{border-radius:16px;padding:12px 6px;text-align:center}}.num{{font-size:24px;font-weight:950}}.label,.eyebrow{{font-size:10px;color:#8fa7b5;letter-spacing:1px;font-weight:800}}.green{{color:#20e66b}}.orange{{color:#ff9d2e}}.ju{{font-size:31px;font-weight:950;margin:4px 0}}.addr{{color:#c3d1d9;margin-bottom:12px}}.pill{{display:inline-block;background:#4b250d;color:#ffb25b;border:1px solid #a44c15;padding:5px 9px;border-radius:8px;font-size:11px;font-weight:900;margin-bottom:14px}}.actions{{display:grid;grid-template-columns:1fr 1fr;gap:9px}}a{{text-decoration:none}}.primary,.secondary{{display:block;text-align:center;border-radius:12px;padding:14px;font-weight:900}}.primary{{background:linear-gradient(135deg,#0ab847,#20e66b);color:#021009}}.secondary{{background:#142a36;color:white;border:1px solid #35505f}}.wide{{margin-top:14px}}.sectiontitle{{font-size:11px;color:#8fa7b5;font-weight:850;letter-spacing:1.2px;margin:18px 3px 8px}}.tools{{display:grid;grid-template-columns:1fr 1fr;gap:9px}}.tool{{border-radius:17px;padding:15px;color:white;min-height:100px}}.tool.map{{border-color:#167443;background:linear-gradient(145deg,#0d2b20,#0b1d20)}}.ico{{font-size:25px;margin-bottom:8px}}.tool b{{display:block}}.tool small{{color:#91a7b5}}.mode{{margin-top:12px;display:flex;align-items:center;gap:10px}}.dot{{width:10px;height:10px;border-radius:50%;background:{'#20e66b' if running else '#667985'}}}.modeinfo{{flex:1}}.modeinfo small{{display:block;color:#91a7b5}}.start{{background:#20e66b;color:#021009}}.stop{{background:#ef5350;color:white}}.bottom{{position:fixed;bottom:0;left:0;right:0;background:#071117f5;border-top:1px solid #233742;z-index:20}}.nav{{max-width:600px;margin:auto;display:grid;grid-template-columns:repeat(4,1fr)}}.nav a{{color:#8fa6b4;text-align:center;padding:10px 2px;font-size:10px;font-weight:750}}.nav span{{display:block;font-size:20px}}.nav .on{{color:#20e66b}}
