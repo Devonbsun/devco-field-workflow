@@ -1,0 +1,7 @@
+#!/data/data/com.termux/files/usr/bin/bash
+ROOT="$HOME/DEVCO_FIELD"
+if ! pgrep -f "$ROOT/SYSTEM/devco_app.py" >/dev/null; then
+  nohup python "$ROOT/SYSTEM/devco_app.py" > "$ROOT/.devco_app.log" 2>&1 &
+  sleep 1
+fi
+termux-open-url http://127.0.0.1:8765
