@@ -13,6 +13,7 @@ SOLOCATOR=Path("/storage/emulated/0/Pictures/Solocator")
 PHOTO_MATCH_METERS=120
 _photo_seen=set()
 PHOTO_AMBIGUITY_METERS=8
+photo_notice="Watching for new Solocator photos"
 
 def _photo_gps(path):
     try:
@@ -55,6 +56,7 @@ def import_solocator_photo(photo, quiet=False, update_active=True):
     return {"job":job,"ju":pole["ju"],"meters":meters,"dest":str(dest),"copied":copied}
 
 def photo_watcher():
+    global photo_notice
     # Seed existing images so a restart never replays history or changes the active JU.
     try:
         if SOLOCATOR.exists():
@@ -74,9 +76,14 @@ def photo_watcher():
                     result=import_solocator_photo(photo,quiet=False,update_active=True)
                     # Mark every stable file seen. Review cases should not loop forever.
                     _photo_seen.add(key)
-                    if not result: print(f"PHOTO NOT AUTO-FILED: {photo.name}",flush=True)
+                    if result:
+                        photo_notice=f"Photo saved to JU {result['ju']}"
+                    else:
+                        photo_notice=f"Photo needs review: {photo.name}. GPS match unavailable or ambiguous; original kept in Solocator."
+                        print(f"PHOTO NOT AUTO-FILED: {photo.name}",flush=True)
             time.sleep(2)
         except Exception as e:
+            photo_notice="Photo filing error — originals remain in Solocator."
             print(f"PHOTO WATCH ERROR: {e}",flush=True); time.sleep(3)
 
 
@@ -339,7 +346,10 @@ def billing_page(msg=''):
     warn=('<div class="card warn">'+html.escape(msg)+'</div>') if msg else ''
     form='<form method="post" action="/finish"><div class="card"><h2>WORK PERFORMED</h2><p>Select every billing code actually performed. Quantity defaults to 1.</p>'+chips+'<textarea name="note" placeholder="Optional note - normal transfers need no note"></textarea><button class="go" name="close" value="FIBER TRANSFER COMPLETED">FINISH TRANSFER</button></div><div class="card"><h2>NO WORK NEEDED</h2><button class="no" name="close" value="TRANSFER ALREADY COMPLETED">Already completed - Trip Charge $40</button><button class="no" name="close" value="NO IDENTIFIABLE WINDSTREAM LINE ON POLE">No identifiable Windstream line - Trip Charge $40</button><button class="no" name="close" value="NO SERVICES ON POLE">No services on pole</button><button class="no" name="close" value="PENDING">Pending / return needed</button></div></form>'
     css='<meta name="viewport" content="width=device-width,initial-scale=1"><style>*{box-sizing:border-box}body{background:#071019;color:white;font-family:system-ui;padding:15px;max-width:650px;margin:auto}.card{background:#10212c;border:1px solid #294653;border-radius:16px;padding:14px;margin:12px 0}label{display:grid;grid-template-columns:25px 1fr 35px 55px;align-items:center;padding:9px;border-bottom:1px solid #294653}input[type=number]{width:50px}button{width:100%;padding:15px;margin-top:8px;border:0;border-radius:10px;font-weight:900}.go{background:#20e66b}.no{background:#1a3442;color:white}textarea{width:100%;min-height:60px;margin-top:10px}a{color:#9fc5d9}.warn{border-color:#a44c15}</style>'
-    return '<!doctype html>'+css+top+warn+form
+    from simple_ui import billing_draft_script
+    hidden='<input type="hidden" name="job" value="'+html.escape(active_job)+'"><input type="hidden" name="ju" value="'+html.escape(active_ju)+'">'
+    form=form.replace('<form method="post" action="/finish">','<form method="post" action="/finish">'+hidden)
+    return '<!doctype html>'+css+top+warn+form+billing_draft_script(active_job,active_ju)
 
 def save_closeout(job,ju,close,codes,note):
     allowed={'FIBER TRANSFER COMPLETED','TRANSFER ALREADY COMPLETED','NO SERVICES ON POLE','NO IDENTIFIABLE WINDSTREAM LINE ON POLE','PENDING'}
@@ -438,7 +448,7 @@ if(window.DeviceOrientationEvent) window.addEventListener('deviceorientationabso
 navigator.geolocation.watchPosition(render,e=>{{document.getElementById('msg').textContent='Location unavailable: '+e.message;}},{{enableHighAccuracy:true,maximumAge:0,timeout:10000}});
 </script></body></html>"""
 
-def page(msg=""):
+def legacy_page(msg=""):
     js=jobs(); selected=active_job or (js[0] if js else "")
     total=count_jus(selected) if selected else 0; done=completed(selected) if selected else 0; remain=max(0,total-done)
     running=field_mode
@@ -457,6 +467,10 @@ def page(msg=""):
 *{{box-sizing:border-box}}html,body{{margin:0;background:#050b10;color:#f5f9fc;font-family:system-ui}}body{{background:radial-gradient(circle at top,#123044,#07131b 38%,#050b10 70%);min-height:100vh;padding-bottom:80px}}main{{max-width:600px;margin:auto;padding:16px}}.top{{display:flex;justify-content:space-between;align-items:center;padding:8px 2px 15px}}.brand{{font-size:27px;font-weight:900}}.brand b{{color:#20e66b}}.signal{{font-size:11px;color:#20e66b;border:1px solid #18743b;background:#092618;padding:7px 9px;border-radius:99px}}.card,.job,.hero,.tool,.mode,.stat{{background:linear-gradient(145deg,#10212c,#09151d);border:1px solid #263d49;box-shadow:0 10px 28px #0007}}.job,.hero,.mode{{border-radius:19px;padding:15px}}.job form{{display:flex;gap:8px}}select{{flex:1;min-width:0;background:#132630;color:white;border:1px solid #334b58;border-radius:12px;padding:13px;font-size:15px;font-weight:700}}button{{border:0;border-radius:11px;padding:12px 14px;font-weight:850}}.job button{{background:#203642;color:white}}.stats{{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin:11px 0 14px}}.stat{{border-radius:16px;padding:12px 6px;text-align:center}}.num{{font-size:24px;font-weight:950}}.label,.eyebrow{{font-size:10px;color:#8fa7b5;letter-spacing:1px;font-weight:800}}.green{{color:#20e66b}}.orange{{color:#ff9d2e}}.ju{{font-size:31px;font-weight:950;margin:4px 0}}.addr{{color:#c3d1d9;margin-bottom:12px}}.pill{{display:inline-block;background:#4b250d;color:#ffb25b;border:1px solid #a44c15;padding:5px 9px;border-radius:8px;font-size:11px;font-weight:900;margin-bottom:14px}}.actions{{display:grid;grid-template-columns:1fr 1fr;gap:9px}}a{{text-decoration:none}}.primary,.secondary{{display:block;text-align:center;border-radius:12px;padding:14px;font-weight:900}}.primary{{background:linear-gradient(135deg,#0ab847,#20e66b);color:#021009}}.secondary{{background:#142a36;color:white;border:1px solid #35505f}}.wide{{margin-top:14px}}.sectiontitle{{font-size:11px;color:#8fa7b5;font-weight:850;letter-spacing:1.2px;margin:18px 3px 8px}}.tools{{display:grid;grid-template-columns:1fr 1fr;gap:9px}}.tool{{border-radius:17px;padding:15px;color:white;min-height:100px}}.tool.map{{border-color:#167443;background:linear-gradient(145deg,#0d2b20,#0b1d20)}}.ico{{font-size:25px;margin-bottom:8px}}.tool b{{display:block}}.tool small{{color:#91a7b5}}.mode{{margin-top:12px;display:flex;align-items:center;gap:10px}}.dot{{width:10px;height:10px;border-radius:50%;background:{'#20e66b' if running else '#667985'}}}.modeinfo{{flex:1}}.modeinfo small{{display:block;color:#91a7b5}}.start{{background:#20e66b;color:#021009}}.stop{{background:#ef5350;color:white}}.jutimes{{display:flex;gap:15px;color:#a9bbc6;font-size:12px;margin:-4px 0 13px}}.timerpanel{{margin-top:12px;background:linear-gradient(145deg,#0d1f29,#09151d);border:1px solid #28414f;border-radius:19px;padding:15px}}.timerhead{{display:flex;justify-content:space-between;align-items:center}}.liveclock{{font-size:26px;font-weight:950;color:#20e66b}}.cats{{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:11px}}.cat{{background:#101d25;border-radius:10px;padding:8px 3px;text-align:center;font-size:9px;color:#91a7b5}}.cat b{{display:block;color:white;font-size:13px;margin-top:2px}}.timerbuttons{{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:10px}}.timerbuttons form{{margin:0}}.timerbuttons button{{width:100%;font-size:10px;padding:10px 3px;background:#18303d;color:white}}.timerbuttons .work{{background:#167443}}.timerbuttons .break{{background:#6b481c}}.bottom{{position:fixed;bottom:0;left:0;right:0;background:#071117f5;border-top:1px solid #233742;z-index:20}}.nav{{max-width:600px;margin:auto;display:grid;grid-template-columns:repeat(4,1fr)}}.nav a{{color:#8fa6b4;text-align:center;padding:10px 2px;font-size:10px;font-weight:750}}.nav span{{display:block;font-size:20px}}.nav .on{{color:#20e66b}}
 </style></head><body><main><div class="top"><div class="brand">DEVCO <b>FIELD</b></div><div class="signal">● OFFLINE READY</div></div><div class="job"><form method="post" action="/select"><select name="job">{opts}</select><button>Switch</button></form></div><div class="stats"><div class="stat"><div class="num">{total}</div><div class="label">JUs</div></div><div class="stat"><div class="num green">{done}</div><div class="label">Complete</div></div><div class="stat"><div class="num orange">{remain}</div><div class="label">Remaining</div></div></div>{active_html}<div class="sectiontitle">FIELD TOOLS</div><div class="tools"><a class="tool map" href="/map"><div class="ico">◈</div><b>Job Map</b><small>JUs, GPS & route</small></a><a class="tool" href="/hone"><div class="ico">⌖</div><b>Hone In</b><small>Live 3 m guidance</small></a><a class="tool" href="/camera"><div class="ico">▣</div><b>Camera</b><small>Open Solocator</small></a><a class="tool" href="/billing"><div class="ico">▤</div><b>Finish JU</b><small>Billing & closeout</small></a></div>{timer_html}<div class="mode"><div class="dot"></div><div class="modeinfo"><b>Field Mode {'Running' if running else 'Stopped'}</b><small>{done} of {total} completed</small></div><form method="post" action="/{'stop' if running else 'start'}"><button class="{'stop' if running else 'start'}">{'Stop' if running else 'Start'}</button></form></div><script>if(navigator.geolocation) navigator.geolocation.watchPosition(p=>{{fetch('/gps-nearest?lat='+p.coords.latitude+'&lon='+p.coords.longitude+'&accuracy='+(p.coords.accuracy||999),{{cache:'no-store'}}).then(r=>r.json()).then(x=>{{if(x.switched) location.reload();}}).catch(()=>{{}});}},()=>{{}},{{enableHighAccuracy:true,maximumAge:0,timeout:10000}});</script><script>const runTimer={str(bool(tstate.get("running"))).lower()},baseTimer={float(tstate.get("elapsed",0))},timerStart=Date.now();function tf(x){{x=Math.floor(Math.max(0,x));let h=Math.floor(x/3600),m=Math.floor((x%3600)/60),q=x%60;return h?h+":"+String(m).padStart(2,"0")+":"+String(q).padStart(2,"0"):m+":"+String(q).padStart(2,"0")}}if(runTimer)setInterval(()=>{{let e=document.getElementById("liveclock");if(e)e.textContent=tf(baseTimer+(Date.now()-timerStart)/1000)}},1000);</script></main><div class="bottom"><div class="nav"><a class="on" href="/map"><span>◈</span>Map</a><a href="/"><span>⌖</span>Active JU</a><a href="/camera"><span>▣</span>Camera</a><a href="/"><span>•••</span>More</a></div></div></body></html>"""
 
+def page(msg=""):
+    from simple_ui import page as simple_page
+    return simple_page(globals(),msg)
+
 def start_field():
     global field_mode
     if not active_job: return 'Select a job first.'
@@ -464,30 +478,35 @@ def start_field():
     field_mode=True; save_app_state()
     return 'Field Mode started. Photo filing active.'
 
-threading.Thread(target=photo_watcher,daemon=True,name="solocator-photo-watcher").start()
+
 
 class H(BaseHTTPRequestHandler):
     def send(self,msg=''):
         b=page(msg).encode(); self.send_response(200); self.send_header('Content-Type','text/html; charset=utf-8'); self.send_header('Content-Length',str(len(b))); self.end_headers(); self.wfile.write(b)
     def do_GET(self):
+        global active_job, active_ju
         path=urlparse(self.path).path
         if path in ("/static/leaflet.js","/static/leaflet.css"):
             f=ROOT/"SYSTEM"/"vendor"/path.rsplit("/",1)[-1]
             if f.exists():
                 b=f.read_bytes(); self.send_response(200); self.send_header("Content-Type","application/javascript" if path.endswith(".js") else "text/css"); self.send_header("Content-Length",str(len(b))); self.end_headers(); self.wfile.write(b); return
+        if path == "/status":
+            folder=_ju_folder(active_job,active_ju) if active_job and active_ju else None
+            photos=sum(p.is_file() for p in (folder/"photos").glob("*")) if folder else 0
+            b=json.dumps({"job":active_job,"ju":active_ju,"photos":photos,"notice":photo_notice}).encode()
+            self.send_response(200); self.send_header("Content-Type","application/json"); self.send_header("Cache-Control","no-store"); self.send_header("Content-Length",str(len(b))); self.end_headers(); self.wfile.write(b); return
         if path == "/billing":
             b=billing_page().encode(); self.send_response(200); self.send_header("Content-Type","text/html; charset=utf-8"); self.send_header("Content-Length",str(len(b))); self.end_headers(); self.wfile.write(b); return
         if path == "/camera":
             try:
-                # Open Solocator directly in the foreground.
-                subprocess.Popen(["am","start","-a","android.intent.action.MAIN",
-                                  "-c","android.intent.category.LAUNCHER","-p","com.solocator"],
-                                 stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL)
+                result=subprocess.run(["am","start","-a","android.intent.action.MAIN","-c","android.intent.category.LAUNCHER","-p","com.solocator"],capture_output=True,text=True,timeout=10)
+                output=result.stdout+result.stderr
+                if result.returncode or "Error" in output or "Exception" in output:
+                    self.send("Solocator did not open. Open it from your phone; new photos will still be checked for GPS filing."); return
             except Exception:
-                pass
+                self.send("Solocator did not open. Open it from your phone; new photos will still be checked for GPS filing."); return
             self.send_response(303); self.send_header("Location","/"); self.end_headers(); return
         if path == "/gps-nearest":
-            global active_job, active_ju
             q=parse_qs(urlparse(self.path).query)
             try:
                 lat=float(q.get("lat",[""])[0]); lon=float(q.get("lon",[""])[0])
@@ -500,7 +519,7 @@ class H(BaseHTTPRequestHandler):
                 # Auto-connect only when GPS is credible and the worker is physically near a pole.
                 # 45 m handles normal phone GPS drift without jumping to poles while driving past.
                 switched=False
-                if acc <= 35 and meters <= 45 and nearest["ju"] != active_ju:
+                if acc <= 35 and meters <= 45 and not active_ju:
                     active_ju=nearest["ju"]; save_app_state()
                     start_timer(active_job,"Work",active_ju)
                     switched=True
@@ -525,19 +544,22 @@ class H(BaseHTTPRequestHandler):
         global active_job, field_proc, field_mode, active_ju
         n=int(self.headers.get('Content-Length','0')); data=parse_qs(self.rfile.read(n).decode())
         if self.path=='/finish':
+            target_job=data.get('job',[''])[0]; target_ju=data.get('ju',[''])[0]
+            if target_job != active_job or target_ju != active_ju:
+                self.send('The active JU changed. Nothing was saved. Open Notes & codes for the current JU; your previous draft is kept.'); return
             close=data.get('close',[''])[0]; note=data.get('note',[''])[0]; selected=[]
             for c in data.get('code',[]):
                 if c in BILLING_CODES:
                     qty=data.get('qty_'+c,['1'])[0]; qty=qty if qty.isdigit() and int(qty)>0 else '1'; selected.append((c,qty))
-            ok,msg=save_closeout(active_job,active_ju,close,selected,note) if active_job and active_ju else (False,'Waiting for GPS JU.')
+            ok,msg=save_closeout(target_job,target_ju,close,selected,note) if target_job and target_ju else (False,'Waiting for GPS JU.')
             if ok:
-                finished_ju=active_ju
-                stop_timer(active_job)
+                finished_ju=target_ju
+                stop_timer(target_job)
                 # Advance to the next unfinished stop in the persistent route and start Drive.
                 nxt=next((x for x in route40(active_job) if x['ju'] != finished_ju),None)
                 if nxt:
                     active_ju=nxt['ju']; save_app_state(); start_timer(active_job,'Drive',active_ju)
-                self.send_response(303); self.send_header('Location','/'); self.end_headers(); return
+                self.send_response(303); self.send_header('Location','/?saved='+target_job+':'+target_ju); self.end_headers(); return
             b=billing_page(msg).encode(); self.send_response(400); self.send_header('Content-Type','text/html; charset=utf-8'); self.send_header('Content-Length',str(len(b))); self.end_headers(); self.wfile.write(b); return
         if self.path=='/select':
             j=data.get('job',[''])[0]
@@ -573,4 +595,5 @@ class H(BaseHTTPRequestHandler):
     def log_message(self,*a): pass
 if __name__=='__main__':
     load_app_state()
+    threading.Thread(target=photo_watcher,daemon=True,name="solocator-photo-watcher").start()
     print('DEVCO Field app: http://127.0.0.1:8765',flush=True); ThreadingHTTPServer(('127.0.0.1',8765),H).serve_forever()
