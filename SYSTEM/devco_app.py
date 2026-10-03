@@ -6,12 +6,13 @@ from datetime import datetime
 import xml.etree.ElementTree as ET
 from job_records import sync_job
 ROOT=Path.home()/"DEVCO_FIELD"; JOBS=ROOT/"JOBS"; STATE=ROOT/".devco_app_state.json"
-lock=threading.Lock(); field_proc=None; active_job=None; active_ju=None
+lock=threading.Lock(); field_proc=None; field_mode=False; active_job=None; active_ju=None; APP_STARTED=time.time()
 BILLING_CODES="WC1F PM2A PE1-3G BM80 BM80PF BM82 BM83(A) BM83(B) PE1-3 PE1-3G(JO) PF1-6A(JO) PM11 PM2 PM2(JO) PM2AF PM2C PM52 PM52(A) PM54(A) PM92 R1-5(A) R1-5(AF) WC1 WEC1 WEC1F WPE1 WPE1(JO) WSEA(A) XXCOE XXCW XXPF XXPM11 XXPM5 XXSEA(A) XXSTRAND".split()
 AUTO_TRIP={"TRANSFER ALREADY COMPLETED","NO IDENTIFIABLE WINDSTREAM LINE ON POLE"}
 SOLOCATOR=Path("/storage/emulated/0/Pictures/Solocator")
 PHOTO_MATCH_METERS=120
 _photo_seen=set()
+PHOTO_AMBIGUITY_METERS=8
 
 def _photo_gps(path):
     try:
@@ -21,31 +22,47 @@ def _photo_gps(path):
     except Exception: pass
     return None
 
-def import_solocator_photo(photo, quiet=False):
+def import_solocator_photo(photo, quiet=False, update_active=True):
     global active_job, active_ju
     gps=_photo_gps(photo)
     if not gps:return None
-    # Search every active/new-architecture job. The photo GPS is the source of truth.
     choices=[]
     for job in jobs():
         for pole in ju_points(job):
             meters=_miles({"lat":gps[0],"lon":gps[1]},pole)*1609.344
             choices.append((meters,job,pole))
     if not choices:return None
-    meters,job,pole=min(choices,key=lambda x:x[0])
+    choices.sort(key=lambda x:x[0])
+    meters,job,pole=choices[0]
     if meters>PHOTO_MATCH_METERS:
         if not quiet: print(f"PHOTO REVIEW {photo.name}: nearest JU {pole['ju']} {meters:.1f}m",flush=True)
+        return None
+    # If two different JUs are essentially tied, do not silently misfile evidence.
+    if len(choices)>1 and choices[1][0]-meters < PHOTO_AMBIGUITY_METERS and choices[1][2]['ju'] != pole['ju']:
+        if not quiet: print(f"PHOTO REVIEW {photo.name}: ambiguous {pole['ju']} {meters:.1f}m vs {choices[1][2]['ju']} {choices[1][0]:.1f}m",flush=True)
         return None
     folder=_ju_folder(job,pole["ju"])
     if not folder:return None
     dest=folder/"photos"/photo.name; dest.parent.mkdir(exist_ok=True)
-    if not dest.exists(): shutil.copy2(photo,dest)
-    active_job,active_ju=job,pole["ju"]
+    copied=False
+    if not dest.exists(): shutil.copy2(photo,dest); copied=True
+    if update_active:
+        active_job,active_ju=job,pole["ju"]
+    if copied:
+        try: sync_job(JOBS/job)
+        except Exception as e: print(f"PHOTO SHEET SYNC ERROR: {e}",flush=True)
     if not quiet: print(f"PHOTO MATCH {photo.name} -> {job} JU {pole['ju']} ({meters:.1f}m)",flush=True)
-    return {"job":job,"ju":pole["ju"],"meters":meters,"dest":str(dest)}
+    return {"job":job,"ju":pole["ju"],"meters":meters,"dest":str(dest),"copied":copied}
 
 def photo_watcher():
-    # Always-on safety net: field mode is NOT required for photo filing.
+    # Seed existing images so a restart never replays history or changes the active JU.
+    try:
+        if SOLOCATOR.exists():
+            for photo in SOLOCATOR.iterdir():
+                if photo.is_file() and photo.suffix.lower() in ('.jpg','.jpeg','.png'):
+                    _photo_seen.add((photo.name,photo.stat().st_size))
+    except Exception as e:
+        print(f"PHOTO WATCH INIT ERROR: {e}",flush=True)
     while True:
         try:
             if SOLOCATOR.exists():
@@ -53,9 +70,11 @@ def photo_watcher():
                     if not photo.is_file() or photo.suffix.lower() not in ('.jpg','.jpeg','.png'):continue
                     key=(photo.name,photo.stat().st_size)
                     if key in _photo_seen:continue
-                    # Avoid reading while Solocator is still finishing the image/EXIF.
                     if time.time()-photo.stat().st_mtime<2:continue
-                    if import_solocator_photo(photo,quiet=True): _photo_seen.add(key)
+                    result=import_solocator_photo(photo,quiet=False,update_active=True)
+                    # Mark every stable file seen. Review cases should not loop forever.
+                    _photo_seen.add(key)
+                    if not result: print(f"PHOTO NOT AUTO-FILED: {photo.name}",flush=True)
             time.sleep(2)
         except Exception as e:
             print(f"PHOTO WATCH ERROR: {e}",flush=True); time.sleep(3)
@@ -134,8 +153,21 @@ def fmt_time(sec):
 
 def jobs(): return sorted([p.name for p in JOBS.iterdir() if (p/"3_JU_FILES").is_dir()])
 def count_jus(job): return len(list((JOBS/job/"3_JU_FILES").glob("*/transfer_info.txt")))
+def _ju_state(folder):
+    try:
+        from job_records import _parse_record, CLOSE_RULES
+        rec=_parse_record(folder/"BILLING_AND_NOTES.txt")
+        close=rec.get("status","")
+        need,state=CLOSE_RULES.get(close,(None,"NOT COMPLETED"))
+        photos=len([p for p in (folder/"photos").glob("*") if p.is_file()]) if (folder/"photos").exists() else 0
+        if state in ("COMPLETE","PENDING") and photos < need: return "NOT COMPLETED"
+        return state
+    except Exception:
+        return "NOT COMPLETED"
+
 def completed(job):
-    root=JOBS/job/"3_JU_FILES"; return sum((p.parent/"BILLING_AND_NOTES.txt").exists() for p in root.glob("*/transfer_info.txt"))
+    root=JOBS/job/"3_JU_FILES"
+    return sum(_ju_state(p.parent)=="COMPLETE" for p in root.glob("*/transfer_info.txt"))
 
 def ju_points(job):
     out=[]
@@ -152,7 +184,7 @@ def ju_points(job):
             condition_code=vals.get("Condition Code","")
             condition_desc=vals.get("Condition Description","").replace("<br/>"," · ").replace("\t"," ")
             inspection=vals.get("Inspection Condition","")
-            done=(info.parent/"BILLING_AND_NOTES.txt").exists()
+            done=(_ju_state(info.parent)=="COMPLETE")
             out.append({"ju":ju,"address":address,"lat":lat,"lon":lon,"done":done,
                         "condition_code":condition_code,"condition_desc":condition_desc,"inspection":inspection})
         except Exception:
@@ -293,15 +325,20 @@ def billing_page(msg=''):
     return '<!doctype html>'+css+top+warn+form
 
 def save_closeout(job,ju,close,codes,note):
+    allowed={'FIBER TRANSFER COMPLETED','TRANSFER ALREADY COMPLETED','NO SERVICES ON POLE','NO IDENTIFIABLE WINDSTREAM LINE ON POLE','PENDING'}
+    if close not in allowed:return False,'Invalid close code.'
     folder=_ju_folder(job,ju)
     if not folder:return False,'JU not found'
     photos=sorted((folder/'photos').glob('*')) if (folder/'photos').exists() else []
     need=2 if close=='FIBER TRANSFER COMPLETED' else 1
     if len(photos)<need:return False,f'Need {need} photo(s); currently {len(photos)}.'
     if close=='FIBER TRANSFER COMPLETED' and not codes:return False,'Select at least one billing code for work performed.'
+    if close=='PENDING' and not note.strip():return False,'Pending requires a reason/note.'
     if close in AUTO_TRIP:codes=[('TRIP CHARGE','1')]
     elif close in ('NO SERVICES ON POLE','PENDING'):codes=[]
-    with (folder/'BILLING_AND_NOTES.txt').open('a') as f:
+    # One authoritative current closeout per JU; prevents accidental duplicate submissions.
+    record=folder/'BILLING_AND_NOTES.txt'
+    with record.open('w') as f:
         f.write('\n'+'='*50+f'\nJU: {ju}\n\nPHOTOS:\n'+''.join(f'- {x.name}\n' for x in photos)+f'\nSTATUS: {close}\n\nBILLING:\n')
         f.write(''.join(f'{c} x{q}\n' for c,q in codes) if codes else 'No billing codes entered\n')
         f.write('\nNOTES:\n'+(note.strip() or ('Pole transfer completed.' if close=='FIBER TRANSFER COMPLETED' else close.title()))+'\n')
@@ -387,7 +424,7 @@ navigator.geolocation.watchPosition(render,e=>{{document.getElementById('msg').t
 def page(msg=""):
     js=jobs(); selected=active_job or (js[0] if js else "")
     total=count_jus(selected) if selected else 0; done=completed(selected) if selected else 0; remain=max(0,total-done)
-    running=field_proc is not None and field_proc.poll() is None
+    running=field_mode
     tstate=timer_state(selected) if selected else {"running":False,"category":"","ju":"","elapsed":0}
     daily=today_summary(selected) if selected else {"Drive":0,"Work":0,"Break":0,"Other":0}
     opts=''.join(f'<option value="{html.escape(j)}" {"selected" if j==selected else ""}>{html.escape(j)}</option>' for j in js)
@@ -404,13 +441,12 @@ def page(msg=""):
 </style></head><body><main><div class="top"><div class="brand">DEVCO <b>FIELD</b></div><div class="signal">● OFFLINE READY</div></div><div class="job"><form method="post" action="/select"><select name="job">{opts}</select><button>Switch</button></form></div><div class="stats"><div class="stat"><div class="num">{total}</div><div class="label">JUs</div></div><div class="stat"><div class="num green">{done}</div><div class="label">Complete</div></div><div class="stat"><div class="num orange">{remain}</div><div class="label">Remaining</div></div></div>{active_html}<div class="sectiontitle">FIELD TOOLS</div><div class="tools"><a class="tool map" href="/map"><div class="ico">◈</div><b>Job Map</b><small>JUs, GPS & route</small></a><a class="tool" href="/hone"><div class="ico">⌖</div><b>Hone In</b><small>Live 3 m guidance</small></a><a class="tool" href="/camera"><div class="ico">▣</div><b>Camera</b><small>Open Solocator</small></a><a class="tool" href="/billing"><div class="ico">▤</div><b>Finish JU</b><small>Billing & closeout</small></a></div>{timer_html}<div class="mode"><div class="dot"></div><div class="modeinfo"><b>Field Mode {'Running' if running else 'Stopped'}</b><small>{done} of {total} completed</small></div><form method="post" action="/{'stop' if running else 'start'}"><button class="{'stop' if running else 'start'}">{'Stop' if running else 'Start'}</button></form></div><script>if(navigator.geolocation) navigator.geolocation.watchPosition(p=>{{fetch('/gps-nearest?lat='+p.coords.latitude+'&lon='+p.coords.longitude+'&accuracy='+(p.coords.accuracy||999),{{cache:'no-store'}}).then(r=>r.json()).then(x=>{{if(x.switched) location.reload();}}).catch(()=>{{}});}},()=>{{}},{{enableHighAccuracy:true,maximumAge:0,timeout:10000}});</script><script>const runTimer={str(bool(tstate.get("running"))).lower()},baseTimer={float(tstate.get("elapsed",0))},timerStart=Date.now();function tf(x){{x=Math.floor(Math.max(0,x));let h=Math.floor(x/3600),m=Math.floor((x%3600)/60),q=x%60;return h?h+":"+String(m).padStart(2,"0")+":"+String(q).padStart(2,"0"):m+":"+String(q).padStart(2,"0")}}if(runTimer)setInterval(()=>{{let e=document.getElementById("liveclock");if(e)e.textContent=tf(baseTimer+(Date.now()-timerStart)/1000)}},1000);</script></main><div class="bottom"><div class="nav"><a class="on" href="/map"><span>◈</span>Map</a><a href="/"><span>⌖</span>Active JU</a><a href="/camera"><span>▣</span>Camera</a><a href="/"><span>•••</span>More</a></div></div></body></html>"""
 
 def start_field():
-    global field_proc
+    global field_mode
     if not active_job: return 'Select a job first.'
-    if field_proc and field_proc.poll() is None: return 'Field Mode is already running.'
-    job=JOBS/active_job; env=os.environ.copy(); env.update(DEVCO_JOB=str(job),DEVCO_JOB_ID=active_job,DEVCO_JU_ROOT=str(job/'3_JU_FILES'))
-    log=open(job/'1_JOB_WORKFLOW'/'field_app.log','a',buffering=1)
-    field_proc=subprocess.Popen(['python',str(ROOT/'SYSTEM'/'field_workflow.py')],env=env,stdin=subprocess.DEVNULL,stdout=log,stderr=subprocess.STDOUT,start_new_session=True)
-    return 'Field Mode started.'
+    if field_mode: return 'Field Mode is already running.'
+    field_mode=True
+    return 'Field Mode started. Photo filing active.'
+
 threading.Thread(target=photo_watcher,daemon=True,name="solocator-photo-watcher").start()
 
 class H(BaseHTTPRequestHandler):
@@ -469,7 +505,7 @@ class H(BaseHTTPRequestHandler):
             b=hone_page().encode(); self.send_response(200); self.send_header("Content-Type","text/html; charset=utf-8"); self.send_header("Content-Length",str(len(b))); self.end_headers(); self.wfile.write(b)
         else: self.send()
     def do_POST(self):
-        global active_job, field_proc, active_ju
+        global active_job, field_proc, field_mode, active_ju
         n=int(self.headers.get('Content-Length','0')); data=parse_qs(self.rfile.read(n).decode())
         if self.path=='/finish':
             close=data.get('close',[''])[0]; note=data.get('note',[''])[0]; selected=[]
@@ -478,7 +514,13 @@ class H(BaseHTTPRequestHandler):
                     qty=data.get('qty_'+c,['1'])[0]; qty=qty if qty.isdigit() and int(qty)>0 else '1'; selected.append((c,qty))
             ok,msg=save_closeout(active_job,active_ju,close,selected,note) if active_job and active_ju else (False,'Waiting for GPS JU.')
             if ok:
-                stop_timer(active_job); self.send_response(303); self.send_header('Location','/'); self.end_headers(); return
+                finished_ju=active_ju
+                stop_timer(active_job)
+                # Advance to the next unfinished stop in the persistent route and start Drive.
+                nxt=next((x for x in route40(active_job) if x['ju'] != finished_ju),None)
+                if nxt:
+                    active_ju=nxt['ju']; start_timer(active_job,'Drive',active_ju)
+                self.send_response(303); self.send_header('Location','/'); self.end_headers(); return
             b=billing_page(msg).encode(); self.send_response(400); self.send_header('Content-Type','text/html; charset=utf-8'); self.send_header('Content-Length',str(len(b))); self.end_headers(); self.wfile.write(b); return
         if self.path=='/select':
             j=data.get('job',[''])[0]
@@ -505,8 +547,8 @@ class H(BaseHTTPRequestHandler):
             # This writes the final Drive/Work/Break segment to TIME_TRACKING.csv.
             if active_job:
                 stop_timer(active_job)
-            if field_proc and field_proc.poll() is None:
-                field_proc.terminate(); msg='Field Mode stopped. Time tracking stopped.'
+            if field_mode:
+                field_mode=False; msg='Field Mode stopped. Time tracking stopped.'
             else:
                 msg='Field Mode is not running. Time tracking stopped.'
         else: msg='Unknown action.'

@@ -12,6 +12,7 @@ import android.webkit.GeolocationPermissions;
 import android.Manifest;
 import android.content.pm.PackageManager;
 import android.widget.Toast;
+import android.os.Handler;
 
 public class MainActivity extends Activity {
     private WebView web;
@@ -78,7 +79,29 @@ public class MainActivity extends Activity {
         web.getSettings().setGeolocationEnabled(true);
         setContentView(web);
         startBackend();
-        web.loadUrl("http://127.0.0.1:8765");
+        loadBackendWithRetry(0);
+    }
+
+
+    private void loadBackendWithRetry(final int attempt) {
+        // Give Termux a moment to start the local server. Retry rather than leaving
+        // the user on WebView's connection-refused page after a cold launch.
+        new Handler().postDelayed(new Runnable() {
+            @Override public void run() {
+                web.loadUrl("http://127.0.0.1:8765");
+                if (attempt < 4) loadBackendWithRetry(attempt + 1);
+            }
+        }, attempt == 0 ? 600 : 1200);
+    }
+
+    @Override protected void onResume() {
+        super.onResume();
+        // Returning from Solocator/Maps must immediately show the newly matched JU/photos.
+        if (web != null && web.getUrl() != null) {
+            web.postDelayed(new Runnable() {
+                @Override public void run() { web.reload(); }
+            }, 900);
+        }
     }
 
     private void openGoogleMaps(String lat, String lon) {
