@@ -6,6 +6,7 @@ import math
 import os
 import zipfile
 import xml.etree.ElementTree as ET
+from job_records import sync_job
 from pathlib import Path
 
 PHOTOS = Path("/storage/emulated/0/Pictures/Solocator")
@@ -335,31 +336,30 @@ def billing_prompt(pole, photos, input_fn=input):
     print()
 
     print()
-    print("POLE STATUS")
-    print("1) TRANSFER COMPLETED")
-    print("2) SURVEY / TRIP CHARGE")
-    print("3) OTHER")
+    print("JOB CLOSE CODE")
+    print("1) FIBER TRANSFER COMPLETED (2+ photos)")
+    print("2) TRANSFER ALREADY COMPLETED (1+ photo)")
+    print("3) NO SERVICES ON POLE (1+ photo)")
+    print("4) NO IDENTIFIABLE WINDSTREAM LINE ON POLE (1+ photo)")
+    print("5) PENDING (trip made; remains incomplete)")
     print()
 
+    close_choices = {
+        "1": ("FIBER TRANSFER COMPLETED", 2),
+        "2": ("TRANSFER ALREADY COMPLETED", 1),
+        "3": ("NO SERVICES ON POLE", 1),
+        "4": ("NO IDENTIFIABLE WINDSTREAM LINE ON POLE", 1),
+        "5": ("PENDING", 1),
+    }
     while True:
-        status_choice = input_fn("Status # [1]: ").strip()
-
-        if status_choice == "":
-            status_choice = "1"
-
-        if status_choice == "1":
-            status = "TRANSFER COMPLETED"
-            break
-
-        if status_choice == "2":
-            status = "SURVEY / TRIP CHARGE"
-            break
-
-        if status_choice == "3":
-            status = "OTHER"
-            break
-
-        print("Enter 1, 2, or 3.")
+        status_choice = input_fn("Close code # [1]: ").strip() or "1"
+        if status_choice not in close_choices:
+            print("Enter 1 through 5."); continue
+        status, required_photos = close_choices[status_choice]
+        if len(photos) < required_photos:
+            print(f"Cannot close as {status}: requires at least {required_photos} photo(s); currently {len(photos)}.")
+            continue
+        break
 
     print()
     print(f"STATUS: {status}")
@@ -467,6 +467,8 @@ def billing_prompt(pole, photos, input_fn=input):
         )
 
     save_master_record(pole, photos, selected, note)
+    summary=sync_job(JOB)
+    print(f"Live sheets updated: {summary['COMPLETE']} complete / {summary['TOTAL']} total; {summary['PENDING']} pending")
     navigate_next(pole["ju"])
 
     print()
