@@ -47,7 +47,7 @@ def import_solocator_photo(photo, quiet=False, update_active=True):
     copied=False
     if not dest.exists(): shutil.copy2(photo,dest); copied=True
     if update_active:
-        active_job,active_ju=job,pole["ju"]
+        active_job,active_ju=job,pole["ju"]; save_app_state()
     if copied:
         try: sync_job(JOBS/job)
         except Exception as e: print(f"PHOTO SHEET SYNC ERROR: {e}",flush=True)
@@ -79,6 +79,23 @@ def photo_watcher():
         except Exception as e:
             print(f"PHOTO WATCH ERROR: {e}",flush=True); time.sleep(3)
 
+
+def load_app_state():
+    global active_job, active_ju, field_mode
+    try:
+        d=json.loads(STATE.read_text()) if STATE.exists() else {}
+        j=d.get("active_job")
+        active_job=j if j in jobs() else (jobs()[0] if jobs() else None)
+        active_ju=d.get("active_ju") if active_job else None
+        if active_ju and active_ju not in {x["ju"] for x in ju_points(active_job)}: active_ju=None
+        field_mode=bool(d.get("field_mode",False))
+    except Exception:
+        active_job=jobs()[0] if jobs() else None; active_ju=None; field_mode=False
+
+def save_app_state():
+    try:
+        STATE.write_text(json.dumps({"active_job":active_job,"active_ju":active_ju,"field_mode":field_mode}))
+    except Exception as e: print(f"STATE SAVE ERROR: {e}",flush=True)
 
 def _time_dir(job):
     d=JOBS/job/"1_JOB_WORKFLOW"; d.mkdir(parents=True,exist_ok=True); return d
@@ -314,7 +331,7 @@ def _ju_folder(job,ju):
     return None
 
 def billing_page(msg=''):
-    if not active_job or not active_ju: return '<html><body><h2>Waiting for GPS JU</h2><a href="/">Back</a></body></html>'
+    if not active_job or not active_ju: return '<!doctype html><meta name="viewport" content="width=device-width,initial-scale=1"><body style="background:#071019;color:white;font-family:system-ui;padding:24px"><h2>Waiting for active JU</h2><p>Move near a pole for GPS auto-selection, or choose one from the map.</p><a style="color:#20e66b" href="/map">Open Job Map</a></body>'
     q=next((x for x in ju_points(active_job) if x['ju']==active_ju),{})
     folder=_ju_folder(active_job,active_ju); photos=list((folder/'photos').glob('*')) if folder and (folder/'photos').exists() else []
     chips=''.join('<label><input type="checkbox" name="code" value="'+c+'"><b>'+c+'</b> Qty <input type="number" name="qty_'+c+'" value="1" min="1"></label>' for c in BILLING_CODES)
@@ -432,7 +449,7 @@ def page(msg=""):
     if active:
         nav=f'https://www.google.com/maps/dir/?api=1&destination={active["lat"]},{active["lon"]}&travelmode=driving'
         jt=ju_times(selected,active["ju"])
-        active_html=f'<section class="hero"><div class="eyebrow">ACTIVE JU</div><div class="ju">{html.escape(active["ju"])}</div><div class="addr">📍 {html.escape(active["address"])}</div><div style="background:#162630;border:1px solid #3c5968;border-radius:12px;padding:12px;margin:10px 0"><div class="eyebrow">WORK ORDER — WHAT TO DO</div><div style="font-size:20px;font-weight:950;color:#20e66b;margin:4px 0">{html.escape(active.get("condition_code","") or "No condition code")}</div><div style="font-size:14px;line-height:1.35">{html.escape(active.get("condition_desc","") or "No work description supplied")}</div><div class="eyebrow" style="margin-top:7px">INSPECTION {html.escape(active.get("inspection","") or "—")}</div></div><div class="pill">{"✓ COMPLETED" if active["done"] else "● INCOMPLETE"}</div><div class="jutimes"><span>🚙 Drive {fmt_time(jt["Drive"])}</span><span>🛠 Work {fmt_time(jt["Work"])}</span></div><div class="actions"><a class="primary" href="/hone">⌖ Hone In</a><a class="secondary" href="/nav?lat={active["lat"]}&lon={active["lon"]}&ju={html.escape(active["ju"])}">➤ Google Maps</a></div><a class="secondary wide" href="/map">◈ Show Route 40</a></section>'
+        active_html=f'<section class="hero"><div class="eyebrow">ACTIVE JU</div><div class="ju">{html.escape(active["ju"])}</div><div class="addr">📍 {html.escape(active["address"])}</div><div style="background:#162630;border:1px solid #3c5968;border-radius:12px;padding:12px;margin:10px 0"><div class="eyebrow">WORK ORDER — WHAT TO DO</div><div style="font-size:20px;font-weight:950;color:#20e66b;margin:4px 0">{html.escape(active.get("condition_code","") or "No condition code")}</div><div style="font-size:14px;line-height:1.35">{html.escape(active.get("condition_desc","") or "No work description supplied")}</div><div class="eyebrow" style="margin-top:7px">INSPECTION {html.escape(active.get("inspection","") or "—")}</div></div><div class="pill">{"✓ COMPLETED" if active["done"] else "● INCOMPLETE"} · {len(list((_ju_folder(selected,active["ju"])/"photos").glob("*"))) if _ju_folder(selected,active["ju"]) and (_ju_folder(selected,active["ju"])/"photos").exists() else 0} PHOTOS</div><div class="jutimes"><span>🚙 Drive {fmt_time(jt["Drive"])}</span><span>🛠 Work {fmt_time(jt["Work"])}</span></div><div class="actions"><a class="primary" href="/hone">⌖ Hone In</a><a class="secondary" href="/nav?lat={active["lat"]}&lon={active["lon"]}&ju={html.escape(active["ju"])}">➤ Google Maps</a></div><a class="primary wide" href="/billing" style="margin-top:9px">✓ Finish JU / Billing</a><a class="secondary wide" href="/camera" style="margin-top:9px">▣ Take Solocator Photo</a><a class="secondary wide" href="/map" style="margin-top:9px">◈ Show Route 40</a></section>'
     else: active_html='<section class="hero"><div class="eyebrow">ACTIVE JU</div><div class="ju">No JU selected</div><div class="addr">Open the map and choose a pole to begin.</div><a class="primary wide" href="/map">Open Job Map</a></section>'
     timer_label=(tstate.get("category") or "Stopped") + ((" · JU "+tstate.get("ju","")) if tstate.get("ju") else "")
     timer_html=f"""<div class="timerpanel"><div class="timerhead"><div><div class="eyebrow">DAILY TIME</div><b>{html.escape(timer_label)}</b></div><div class="liveclock" id="liveclock">{fmt_time(tstate.get("elapsed",0)) if tstate.get("running") else fmt_time(sum(daily.values()))}</div></div><div class="cats"><div class="cat">DRIVE<b>{fmt_time(daily["Drive"])}</b></div><div class="cat">WORK<b>{fmt_time(daily["Work"])}</b></div><div class="cat">BREAK<b>{fmt_time(daily["Break"])}</b></div><div class="cat">OTHER<b>{fmt_time(daily["Other"])}</b></div></div><div class="timerbuttons"><form method="post" action="/timer"><input type="hidden" name="action" value="drive"><button>🚙 Drive</button></form><form method="post" action="/timer"><input type="hidden" name="action" value="work"><button class="work">🛠 Work</button></form><form method="post" action="/timer"><input type="hidden" name="action" value="break"><button class="break">☕ Break</button></form><form method="post" action="/timer"><input type="hidden" name="action" value="stop"><button>■ Stop</button></form></div></div>"""
@@ -444,7 +461,7 @@ def start_field():
     global field_mode
     if not active_job: return 'Select a job first.'
     if field_mode: return 'Field Mode is already running.'
-    field_mode=True
+    field_mode=True; save_app_state()
     return 'Field Mode started. Photo filing active.'
 
 threading.Thread(target=photo_watcher,daemon=True,name="solocator-photo-watcher").start()
@@ -484,7 +501,7 @@ class H(BaseHTTPRequestHandler):
                 # 45 m handles normal phone GPS drift without jumping to poles while driving past.
                 switched=False
                 if acc <= 35 and meters <= 45 and nearest["ju"] != active_ju:
-                    active_ju=nearest["ju"]
+                    active_ju=nearest["ju"]; save_app_state()
                     start_timer(active_job,"Work",active_ju)
                     switched=True
                 payload={"ok":True,"nearest":nearest,"distance_m":round(meters,1),
@@ -519,18 +536,18 @@ class H(BaseHTTPRequestHandler):
                 # Advance to the next unfinished stop in the persistent route and start Drive.
                 nxt=next((x for x in route40(active_job) if x['ju'] != finished_ju),None)
                 if nxt:
-                    active_ju=nxt['ju']; start_timer(active_job,'Drive',active_ju)
+                    active_ju=nxt['ju']; save_app_state(); start_timer(active_job,'Drive',active_ju)
                 self.send_response(303); self.send_header('Location','/'); self.end_headers(); return
             b=billing_page(msg).encode(); self.send_response(400); self.send_header('Content-Type','text/html; charset=utf-8'); self.send_header('Content-Length',str(len(b))); self.end_headers(); self.wfile.write(b); return
         if self.path=='/select':
             j=data.get('job',[''])[0]
-            if j in jobs(): active_job=j; active_ju=None
+            if j in jobs(): active_job=j; active_ju=None; save_app_state()
             msg='Job selected.'
         elif self.path=='/activate':
             j=data.get('ju',[''])[0]
             valid={x['ju'] for x in ju_points(active_job)} if active_job else set()
             if j in valid:
-                active_ju=j
+                active_ju=j; save_app_state()
                 start_timer(active_job,"Drive",j)
                 self.send_response(303); self.send_header('Location','/'); self.end_headers(); return
             msg='JU not found.'
@@ -548,12 +565,12 @@ class H(BaseHTTPRequestHandler):
             if active_job:
                 stop_timer(active_job)
             if field_mode:
-                field_mode=False; msg='Field Mode stopped. Time tracking stopped.'
+                field_mode=False; save_app_state(); msg='Field Mode stopped. Time tracking stopped.'
             else:
                 msg='Field Mode is not running. Time tracking stopped.'
         else: msg='Unknown action.'
         self.send(msg)
     def log_message(self,*a): pass
 if __name__=='__main__':
-    js=jobs(); active_job=js[0] if js else None
+    load_app_state()
     print('DEVCO Field app: http://127.0.0.1:8765',flush=True); ThreadingHTTPServer(('127.0.0.1',8765),H).serve_forever()
