@@ -365,33 +365,42 @@ def billing_prompt(pole, photos, input_fn=input):
     print(f"STATUS: {status}")
     print()
 
+    auto_trip_statuses = {
+        "TRANSFER ALREADY COMPLETED",
+        "NO IDENTIFIABLE WINDSTREAM LINE ON POLE",
+    }
     selected = []
+    if status in auto_trip_statuses:
+        selected = [("TRIP CHARGE", "1")]
+        print("Billing automatically set: TRIP CHARGE x1 ($40.00)")
+        print("No manual billing code entry required.")
+    else:
+        while True:
 
-    while True:
+            choice = input_fn("Billing code #: ").strip()
 
-        choice = input_fn("Billing code #: ").strip()
+            if choice == "":
+                break
 
-        if choice == "":
-            break
+            if choice not in CODES:
+                print("Invalid selection.")
+                continue
 
-        if choice not in CODES:
-            print("Invalid selection.")
-            continue
+            code = CODES[choice]
 
-        code = CODES[choice]
+            qty = input_fn(
+                f"{code} quantity [1]: "
+            ).strip()
 
-        qty = input_fn(
-            f"{code} quantity [1]: "
-        ).strip()
+            if not qty:
+                qty = "1"
 
-        if not qty:
-            qty = "1"
+            selected.append((code, qty))
 
-        selected.append((code, qty))
+            print(f"  ADDED: {code} x{qty}")
 
-        print(f"  ADDED: {code} x{qty}")
+        print()
 
-    print()
 
     note = input_fn(
         "Notation / notes (optional): "
