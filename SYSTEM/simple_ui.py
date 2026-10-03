@@ -69,13 +69,44 @@ async function check(){
 setInterval(check,3000);document.addEventListener('visibilitychange',check);check();
 </script></body></html>""".replace("__MESSAGE__",message).replace("__ACTIVE__",active).replace("__COUNT__",str(count)).replace("__JOB__",esc(job or "None")).replace("__OPTIONS__",options).replace("__TIMER__",timer).replace("__CONTROLS__",controls).replace("__IDENTITY__",identity)
 
+
 def billing_draft_script(job, ju):
-    key = json.dumps("devco-closeout:"+str(job)+":"+str(ju)).replace("</","<\\/")
+    key=json.dumps("devco-closeout:"+str(job)+":"+str(ju)).replace("</","<\\/")
     return """<script>
 const f=document.querySelector('form[action="/finish"]'),key=__KEY__;
 if(f){
- const fields=[...f.querySelectorAll('input:not([type=hidden]),textarea')];
+ const fields=[...f.querySelectorAll('input:not([type=hidden]),textarea')],note=f.elements.note,status=document.getElementById('note-save-status');
+ let timer,chain=Promise.resolve(),submitting=false,ready=false,lastSaved=note.value;
  try{const saved=JSON.parse(localStorage.getItem(key)||'{}');fields.forEach(e=>{const k=e.name+(e.type==='checkbox'?':'+e.value:'');if(k in saved){if(e.type==='checkbox')e.checked=saved[k];else e.value=saved[k];}});}catch(e){}
- f.addEventListener('input',()=>{const d={};fields.forEach(e=>{d[e.name+(e.type==='checkbox'?':'+e.value:'')]=e.type==='checkbox'?e.checked:e.value;});try{localStorage.setItem(key,JSON.stringify(d));}catch(e){}});
+ function stash(){const d={};fields.forEach(e=>{d[e.name+(e.type==='checkbox'?':'+e.value:'')]=e.type==='checkbox'?e.checked:e.value;});try{localStorage.setItem(key,JSON.stringify(d));}catch(e){}}
+ function save(){
+  clearTimeout(timer);stash();
+  const text=note.value;
+  chain=chain.catch(()=>{}).then(async()=>{
+   if(text===lastSaved){status.textContent='Note saved';return;}
+   status.textContent='Saving note…';
+   const body=new URLSearchParams({job:f.elements.job.value,ju:f.elements.ju.value,note:text});
+   const r=await fetch('/note',{method:'POST',body,keepalive:true});
+   if(!r.ok)throw Error('Save failed');
+   lastSaved=text;status.textContent=note.value===text?'Note saved':'Saving note…';
+  });
+  chain.catch(()=>{status.textContent='Note not saved to JU yet — retrying. Draft kept on this screen.';});
+  return chain;
+ }
+ f.addEventListener('input',()=>{stash();clearTimeout(timer);status.textContent='Saving note…';timer=setTimeout(()=>save(),500);});
+ note.addEventListener('blur',()=>save());
+ document.addEventListener('visibilitychange',()=>{if(document.hidden)save();});
+ setInterval(()=>{if(note.value!==lastSaved&&!submitting)save();},5000);
+ f.addEventListener('submit',async e=>{
+  if(ready)return;
+  e.preventDefault();if(submitting)return;submitting=true;
+  const button=e.submitter||document.activeElement;
+  try{
+   await save();ready=true;
+   const hidden=document.createElement('input');hidden.type='hidden';hidden.name='close';hidden.value=button.value;f.appendChild(hidden);
+   HTMLFormElement.prototype.submit.call(f);
+  }catch(error){submitting=false;status.textContent='Could not save. Your draft is kept — tap the completion button again when connected.';}
+ });
+ if(note.value!==lastSaved)save();
 }
 </script>""".replace("__KEY__",key)

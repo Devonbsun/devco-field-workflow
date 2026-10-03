@@ -27,7 +27,7 @@ def _parse_record(p):
  if sts: out['status']=sts[-1].strip().upper()
  # Capture code x qty lines but not headings.
  out['billing']=re.findall(r'^([A-Z0-9][A-Z0-9()\- \[\]/]+?)\s+x(\d+)\s*$',txt,re.M)
- notes=re.findall(r'NOTES:\n([^\n]+)',txt)
+ notes=re.findall(r'^NOTES:\n(.*?)(?=^={5,}\s*$|\Z)',txt,re.M|re.S)
  if notes: out['notes']=[notes[-1].strip()]
  return out
 

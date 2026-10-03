@@ -86,4 +86,37 @@ class SimpleFlow(unittest.TestCase):
         self.assertFalse(result["switched"])
         self.assertEqual(app.active_ju,"102")
 
+    def test_note_autosave_survives_reopen_and_active_change(self):
+        note="Existing transfer.\nCustomer confirmed access."
+        data=urllib.parse.urlencode(dict(job="TEST",ju="101",note=note)).encode()
+        self.assertTrue(json.loads(urllib.request.urlopen(self.base+"/note",data=data).read())["ok"])
+        self.assertIn(note,self.get("/billing"))
+        app.active_ju="102"
+        data=urllib.parse.urlencode(dict(job="TEST",ju="101",note="Updated old JU note")).encode()
+        urllib.request.urlopen(self.base+"/note",data=data).read()
+        from note_store import read_note
+        self.assertEqual(read_note(self.folder),"Updated old JU note")
+        self.assertEqual(app.active_ju,"102")
+    def test_already_completed_preserves_full_note_in_export(self):
+        note="Transfer was already completed.\nNo work performed by Devco."
+        data=urllib.parse.urlencode(dict(job="TEST",ju="101",close="TRANSFER ALREADY COMPLETED",note=note)).encode()
+        urllib.request.urlopen(self.base+"/finish",data=data).read()
+        from job_records import _parse_record
+        rec=_parse_record(self.folder/"BILLING_AND_NOTES.txt")
+        self.assertEqual(rec["notes"],[note])
+        self.assertEqual(rec["billing"],[("TRIP CHARGE","1")])
+        from openpyxl import load_workbook
+        wb=load_workbook(app.JOBS/"TEST"/"1_JOB_WORKFLOW"/"TEST_MASTER.xlsx")
+        self.assertEqual(wb.active.cell(2,10).value,note);wb.close()
+        app.active_ju="101"
+        self.assertIn(note,self.get("/billing"))
+    def test_failed_closeout_keeps_note(self):
+        for p in (self.folder/"photos").glob("*"):p.unlink()
+        data=urllib.parse.urlencode(dict(job="TEST",ju="101",close="TRANSFER ALREADY COMPLETED",note="Keep this note")).encode()
+        from urllib.error import HTTPError
+        with self.assertRaises(HTTPError):urllib.request.urlopen(self.base+"/finish",data=data)
+        from note_store import read_note
+        self.assertEqual(read_note(self.folder),"Keep this note")
+        self.assertFalse((self.folder/"BILLING_AND_NOTES.txt").exists())
+
 if __name__=="__main__":unittest.main()

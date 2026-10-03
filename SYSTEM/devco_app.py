@@ -5,6 +5,7 @@ import html, json, os, subprocess, threading, zipfile, time, csv, math, re, shut
 from datetime import datetime
 import xml.etree.ElementTree as ET
 from job_records import sync_job
+from note_store import read_note, save_note
 ROOT=Path.home()/"DEVCO_FIELD"; JOBS=ROOT/"JOBS"; STATE=ROOT/".devco_app_state.json"
 lock=threading.Lock(); field_proc=None; field_mode=False; active_job=None; active_ju=None; APP_STARTED=time.time()
 BILLING_CODES="WC1F PM2A PE1-3G BM80 BM80PF BM82 BM83(A) BM83(B) PE1-3 PE1-3G(JO) PF1-6A(JO) PM11 PM2 PM2(JO) PM2AF PM2C PM52 PM52(A) PM54(A) PM92 R1-5(A) R1-5(AF) WC1 WEC1 WEC1F WPE1 WPE1(JO) WSEA(A) XXCOE XXCW XXPF XXPM11 XXPM5 XXSEA(A) XXSTRAND".split()
@@ -348,6 +349,7 @@ def billing_page(msg=''):
     css='<meta name="viewport" content="width=device-width,initial-scale=1"><style>*{box-sizing:border-box}body{background:#071019;color:white;font-family:system-ui;padding:15px;max-width:650px;margin:auto}.card{background:#10212c;border:1px solid #294653;border-radius:16px;padding:14px;margin:12px 0}label{display:grid;grid-template-columns:25px 1fr 35px 55px;align-items:center;padding:9px;border-bottom:1px solid #294653}input[type=number]{width:50px}button{width:100%;padding:15px;margin-top:8px;border:0;border-radius:10px;font-weight:900}.go{background:#20e66b}.no{background:#1a3442;color:white}textarea{width:100%;min-height:60px;margin-top:10px}a{color:#9fc5d9}.warn{border-color:#a44c15}</style>'
     from simple_ui import billing_draft_script
     hidden='<input type="hidden" name="job" value="'+html.escape(active_job)+'"><input type="hidden" name="ju" value="'+html.escape(active_ju)+'">'
+    form=form.replace('</textarea>',html.escape(read_note(folder))+'</textarea><p id="note-save-status" role="status">Notes save automatically</p>')
     form=form.replace('<form method="post" action="/finish">','<form method="post" action="/finish">'+hidden)
     return '<!doctype html>'+css+top+warn+form+billing_draft_script(active_job,active_ju)
 
@@ -556,12 +558,24 @@ class H(BaseHTTPRequestHandler):
         else: self.send()
     def do_POST(self):
         global active_job, field_proc, field_mode, active_ju
-        n=int(self.headers.get('Content-Length','0')); data=parse_qs(self.rfile.read(n).decode())
+        n=int(self.headers.get('Content-Length','0')); data=parse_qs(self.rfile.read(n).decode(),keep_blank_values=True)
+        if self.path=='/note':
+            job=data.get('job',[''])[0]; ju=data.get('ju',[''])[0]
+            folder=_ju_folder(job,ju) if job in jobs() and ju else None
+            try:
+                if not folder: raise ValueError('JU not found')
+                save_note(folder,data.get('note',[''])[0])
+                payload={"ok":True}; code=200
+            except Exception as e:
+                payload={"ok":False,"error":str(e)}; code=400
+            b=json.dumps(payload).encode();self.send_response(code);self.send_header('Content-Type','application/json');self.send_header('Content-Length',str(len(b)));self.end_headers();self.wfile.write(b);return
         if self.path=='/finish':
             target_job=data.get('job',[''])[0]; target_ju=data.get('ju',[''])[0]
+            folder=_ju_folder(target_job,target_ju) if target_job in jobs() and target_ju else None
+            if folder and 'note' in data: save_note(folder,data['note'][0])
             if target_job != active_job or target_ju != active_ju:
                 self.send('The active JU changed. Nothing was saved. Open Notes & codes for the current JU; your previous draft is kept.'); return
-            close=data.get('close',[''])[0]; note=data.get('note',[''])[0]; selected=[]
+            close=data.get('close',[''])[0]; note=data.get('note',[read_note(folder) if folder else ''])[0]; selected=[]
             for c in data.get('code',[]):
                 if c in BILLING_CODES:
                     qty=data.get('qty_'+c,['1'])[0]; qty=qty if qty.isdigit() and int(qty)>0 else '1'; selected.append((c,qty))
