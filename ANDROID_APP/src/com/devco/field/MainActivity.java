@@ -7,10 +7,16 @@ import android.content.Intent;
 import android.net.Uri;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
+import android.webkit.WebChromeClient;
+import android.webkit.GeolocationPermissions;
+import android.Manifest;
+import android.content.pm.PackageManager;
 import android.widget.Toast;
 
 public class MainActivity extends Activity {
     private WebView web;
+    private String pendingGeoOrigin;
+    private GeolocationPermissions.Callback pendingGeoCallback;
 
     @Override public void onCreate(Bundle state) {
         super.onCreate(state);
@@ -55,8 +61,21 @@ public class MainActivity extends Activity {
                 return handle(Uri.parse(url));
             }
         });
+        web.setWebChromeClient(new WebChromeClient() {
+            @Override public void onGeolocationPermissionsShowPrompt(String origin, GeolocationPermissions.Callback callback) {
+                if (android.os.Build.VERSION.SDK_INT < 23 ||
+                        getPackageManager().checkPermission(Manifest.permission.ACCESS_FINE_LOCATION, getPackageName()) == PackageManager.PERMISSION_GRANTED) {
+                    callback.invoke(origin, true, false);
+                } else {
+                    pendingGeoOrigin = origin;
+                    pendingGeoCallback = callback;
+                    requestLocationPermission();
+                }
+            }
+        });
         web.getSettings().setJavaScriptEnabled(true);
         web.getSettings().setDomStorageEnabled(true);
+        web.getSettings().setGeolocationEnabled(true);
         setContentView(web);
         startBackend();
         web.loadUrl("http://127.0.0.1:8765");
@@ -95,6 +114,29 @@ public class MainActivity extends Activity {
             startService(i);
         } catch (Exception e) {
             Toast.makeText(this, "Starting DEVCO Field...", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private void requestLocationPermission() {
+        try {
+            java.lang.reflect.Method m = Activity.class.getMethod("requestPermissions", String[].class, Integer.TYPE);
+            m.invoke(this, new Object[]{new String[]{Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION}, Integer.valueOf(77)});
+        } catch (Exception e) {
+            if (pendingGeoCallback != null) {
+                pendingGeoCallback.invoke(pendingGeoOrigin, false, false);
+                pendingGeoCallback = null;
+                pendingGeoOrigin = null;
+            }
+        }
+    }
+
+    // Called by Android 6+ after the reflected runtime permission request.
+    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+        if (requestCode == 77 && pendingGeoCallback != null) {
+            boolean allowed = grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED;
+            pendingGeoCallback.invoke(pendingGeoOrigin, allowed, false);
+            pendingGeoCallback = null;
+            pendingGeoOrigin = null;
         }
     }
 
