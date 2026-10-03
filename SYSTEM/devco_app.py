@@ -135,36 +135,19 @@ def _miles(a,b):
 def _route_miles(seq):
     return sum(_miles(seq[i-1],seq[i]) for i in range(1,len(seq)))
 
-def optimized_route(job):
-    # Optimize only JUs that actually exist in the active job. This also fixes
-    # the historical spreadsheet mismatch where route rows can outnumber JU folders.
+def _route_plan_path(job):
+    return _time_dir(job)/"OPTIMIZED_ROUTE.json"
+
+def _build_optimized_route(job):
     pts=[dict(x) for x in ju_points(job) if not x["done"]]
     if not pts: return []
-
-    # Start at the active JU when possible; otherwise use the first unfinished
-    # spreadsheet stop so field crews keep a stable starting area.
-    start=None
-    if active_ju:
-        start=next((x for x in pts if x["ju"]==active_ju),None)
-        if start is None:
-            start=next((x for x in ju_points(job) if x["ju"]==active_ju),None)
-    if start is None:
-        order={r["ju"]:i for i,r in enumerate(route_points(job))}
-        pts.sort(key=lambda x:order.get(x["ju"],10**9))
-        start=pts[0]
-
-    # Nearest-neighbor gives a strong field route quickly.
-    remaining=[x for x in pts if x["ju"]!=start["ju"]]
-    route=[]
-    current=start
-    if any(x["ju"]==start["ju"] for x in pts):
-        route.append(start)
+    order={r["ju"]:i for i,r in enumerate(route_points(job))}
+    pts.sort(key=lambda x:order.get(x["ju"],10**9))
+    start=pts[0]
+    remaining=pts[1:]; route=[start]; current=start
     while remaining:
         nxt=min(remaining,key=lambda x:_miles(current,x))
         route.append(nxt); remaining.remove(nxt); current=nxt
-
-    # 2-opt refinement removes crossing/backtracking segments.
-    # A few passes is enough for hundreds of JUs and keeps map loading instant.
     n=len(route)
     for _ in range(4):
         improved=False
@@ -175,13 +158,42 @@ def optimized_route(job):
                 if _miles(a,b)+_miles(c,d) > _miles(a,c)+_miles(b,d)+0.01:
                     route[i:k+1]=reversed(route[i:k+1]); improved=True
         if not improved: break
-    for i,x in enumerate(route,1):
-        x["stop"]=i
     return route
 
-def route40(job):
-    return optimized_route(job)[:40]
+def optimized_route(job):
+    # Persist one master route. Selecting/visiting a JU never rebuilds it.
+    # New JUs are inserted into the existing route at the cheapest position.
+    path=_route_plan_path(job)
+    current={x["ju"]:dict(x) for x in ju_points(job)}
+    try:
+        saved=json.loads(path.read_text()) if path.exists() else []
+    except Exception:
+        saved=[]
+    if not saved:
+        saved=_build_optimized_route(job)
+    # Refresh coordinates/status while preserving route order.
+    plan=[current[x["ju"]] for x in saved if x.get("ju") in current]
+    known={x["ju"] for x in plan}
+    for ju,p in current.items():
+        if ju in known: continue
+        if not plan: plan.append(p); continue
+        best_i=len(plan); best_cost=float("inf")
+        for i in range(len(plan)+1):
+            if i==0: cost=_miles(p,plan[0])
+            elif i==len(plan): cost=_miles(plan[-1],p)
+            else: cost=_miles(plan[i-1],p)+_miles(p,plan[i])-_miles(plan[i-1],plan[i])
+            if cost<best_cost: best_cost=cost; best_i=i
+        plan.insert(best_i,p)
+    path.write_text(json.dumps(plan,indent=2))
+    return plan
 
+def route40(job):
+    # Sliding window over the persistent route: completed stops drop out and
+    # the next unfinished stop is pulled in. The remaining route never reshuffles.
+    plan=optimized_route(job)
+    current={x["ju"]:x for x in ju_points(job)}
+    unfinished=[current[x["ju"]] for x in plan if x["ju"] in current and not current[x["ju"]]["done"]]
+    return unfinished[:40]
 
 def launch_google_maps(lat, lon, ju=""):
     try:
