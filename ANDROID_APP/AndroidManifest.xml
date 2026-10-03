@@ -1,0 +1,13 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="com.devco.field">
+    <uses-sdk android:minSdkVersion="21" android:targetSdkVersion="27"/>
+    <uses-permission android:name="android.permission.INTERNET"/>
+    <uses-permission android:name="com.termux.permission.RUN_COMMAND"/>
+    <application android:label="DEVCO Field">
+        <activity android:name=".MainActivity" android:screenOrientation="portrait" android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN"/>
+                <category android:name="android.intent.category.LAUNCHER"/>
+            </intent-filter>
+        </activity>
+    </application>
+</manifest>
