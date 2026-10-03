@@ -202,8 +202,13 @@ def launch_google_maps(lat, lon, ju=""):
         return False
     uri=f"google.navigation:q={lat},{lon}&mode=d"
     try:
-        r=subprocess.run(["am","start","-a","android.intent.action.VIEW","-d",uri,"-p","com.google.android.apps.maps"],
-                         stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL,timeout=5)
+        # Bring Maps up as a fresh foreground task. This avoids the DEVCO
+        # WebView immediately reclaiming focus after /nav redirects.
+        subprocess.run(["am","force-stop","com.google.android.apps.maps"],
+                       stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL,timeout=3)
+        r=subprocess.run(["am","start","-W","-a","android.intent.action.VIEW","-d",uri,
+                          "-p","com.google.android.apps.maps","-f","0x10000000"],
+                         stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL,timeout=10)
         if r.returncode==0: return True
     except Exception:
         pass
