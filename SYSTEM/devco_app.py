@@ -142,6 +142,26 @@ def route40(job):
             if len(out)==40: break
     return out
 
+
+def launch_google_maps(lat, lon, ju=""):
+    try:
+        lat=float(lat); lon=float(lon)
+    except Exception:
+        return False
+    uri=f"google.navigation:q={lat},{lon}&mode=d"
+    try:
+        r=subprocess.run(["am","start","-a","android.intent.action.VIEW","-d",uri,"-p","com.google.android.apps.maps"],
+                         stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL,timeout=5)
+        if r.returncode==0: return True
+    except Exception:
+        pass
+    try:
+        url=f"https://www.google.com/maps/dir/?api=1&destination={lat},{lon}&travelmode=driving"
+        subprocess.Popen(["termux-open-url",url],stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL)
+        return True
+    except Exception:
+        return False
+
 def map_page():
     js=jobs(); selected=active_job or (js[0] if js else "")
     points=ju_points(selected) if selected else []
@@ -165,12 +185,13 @@ if(route.length){{
   const line=route.map(r=>[r.lat,r.lon]);
   L.polyline(line,{{color:'#20e66b',weight:5,opacity:.85}}).addTo(map);
   route.forEach((r,i)=>{{
-    L.marker([r.lat,r.lon],{{icon:L.divIcon({{className:'',html:'<div style="width:28px;height:28px;border-radius:50%;background:#071019;color:#20e66b;border:2px solid #20e66b;display:grid;place-items:center;font:900 12px system-ui;box-shadow:0 2px 8px #000">'+(i+1)+'</div>',iconSize:[28,28],iconAnchor:[14,14]}})}}).addTo(map).bindTooltip('Stop '+(i+1)+' · JU '+r.ju);
+    let rm=L.marker([r.lat,r.lon],{{icon:L.divIcon({{className:'',html:'<div style="width:30px;height:30px;border-radius:50%;background:#071019;color:#20e66b;border:2px solid #20e66b;display:grid;place-items:center;font:900 12px system-ui;box-shadow:0 2px 8px #000;cursor:pointer">'+(i+1)+'</div>',iconSize:[30,30],iconAnchor:[15,15]}})}}).addTo(map);
+    rm.bindTooltip('Stop '+(i+1)+' · JU '+r.ju);
+    rm.bindPopup('<b>Route Stop '+(i+1)+'</b><br>JU '+r.ju+'<br>'+r.address+'<br><br><form method="post" action="/activate" style="display:inline"><input type="hidden" name="ju" value="'+r.ju+'"><button class="activate">Make Active JU</button></form><a class="nav" href="/nav?lat='+r.lat+'&lon='+r.lon+'&ju='+encodeURIComponent(r.ju)+'">Navigate</a>');
   }});
 }}
 pts.forEach(p=>{{let m=L.circleMarker([p.lat,p.lon],{{radius:p.done?7:9,color:p.done?'#6b7b88':'#e53935',fillColor:p.done?'#6b7b88':'#ff3b30',fillOpacity:.9,weight:3}}).addTo(map);
-let nav='https://www.google.com/maps/dir/?api=1&destination='+p.lat+','+p.lon+'&travelmode=driving';
-m.bindPopup('<b>JU '+p.ju+'</b><br>'+p.address+'<br><b>'+(p.done?'COMPLETED':'NOT COMPLETE')+'</b><br><br><form method="post" action="/activate" style="display:inline"><input type="hidden" name="ju" value="'+p.ju+'"><button class="activate">Make Active JU</button></form><a class="nav" href="'+nav+'">Navigate</a>'); bounds.push([p.lat,p.lon]);}});
+m.bindPopup('<b>JU '+p.ju+'</b><br>'+p.address+'<br><b>'+(p.done?'COMPLETED':'NOT COMPLETE')+'</b><br><br><form method="post" action="/activate" style="display:inline"><input type="hidden" name="ju" value="'+p.ju+'"><button class="activate">Make Active JU</button></form><a class="nav" href="/nav?lat='+p.lat+'&lon='+p.lon+'&ju='+encodeURIComponent(p.ju)+'">Navigate</a>'); bounds.push([p.lat,p.lon]);}});
 if(bounds.length) map.fitBounds(bounds,{{padding:[25,25]}}); else map.setView([41.6,-93.6],9);
 if(navigator.geolocation) navigator.geolocation.watchPosition(x=>{{let q=[x.coords.latitude,x.coords.longitude]; if(window.me) window.me.setLatLng(q); else window.me=L.circleMarker(q,{{radius:8,color:'#168cff',fillColor:'#168cff',fillOpacity:1}}).addTo(map).bindPopup('You are here');}},()=>{{}},{{enableHighAccuracy:true}});
 </script></body></html>"""
@@ -215,7 +236,7 @@ def page(msg=""):
     if active:
         nav=f'https://www.google.com/maps/dir/?api=1&destination={active["lat"]},{active["lon"]}&travelmode=driving'
         jt=ju_times(selected,active["ju"])
-        active_html=f'<section class="hero"><div class="eyebrow">ACTIVE JU</div><div class="ju">{html.escape(active["ju"])}</div><div class="addr">📍 {html.escape(active["address"])}</div><div class="pill">{"✓ COMPLETED" if active["done"] else "● INCOMPLETE"}</div><div class="jutimes"><span>🚙 Drive {fmt_time(jt["Drive"])}</span><span>🛠 Work {fmt_time(jt["Work"])}</span></div><div class="actions"><a class="primary" href="/hone">⌖ Hone In</a><a class="secondary" href="/map">➤ Route 40</a></div></section>'
+        active_html=f'<section class="hero"><div class="eyebrow">ACTIVE JU</div><div class="ju">{html.escape(active["ju"])}</div><div class="addr">📍 {html.escape(active["address"])}</div><div class="pill">{"✓ COMPLETED" if active["done"] else "● INCOMPLETE"}</div><div class="jutimes"><span>🚙 Drive {fmt_time(jt["Drive"])}</span><span>🛠 Work {fmt_time(jt["Work"])}</span></div><div class="actions"><a class="primary" href="/hone">⌖ Hone In</a><a class="secondary" href="/nav?lat={active["lat"]}&lon={active["lon"]}&ju={html.escape(active["ju"])}">➤ Google Maps</a></div><a class="secondary wide" href="/map">◈ Show Route 40</a></section>'
     else: active_html='<section class="hero"><div class="eyebrow">ACTIVE JU</div><div class="ju">No JU selected</div><div class="addr">Open the map and choose a pole to begin.</div><a class="primary wide" href="/map">Open Job Map</a></section>'
     timer_label=(tstate.get("category") or "Stopped") + ((" · JU "+tstate.get("ju","")) if tstate.get("ju") else "")
     timer_html=f"""<div class="timerpanel"><div class="timerhead"><div><div class="eyebrow">DAILY TIME</div><b>{html.escape(timer_label)}</b></div><div class="liveclock" id="liveclock">{fmt_time(tstate.get("elapsed",0)) if tstate.get("running") else fmt_time(sum(daily.values()))}</div></div><div class="cats"><div class="cat">DRIVE<b>{fmt_time(daily["Drive"])}</b></div><div class="cat">WORK<b>{fmt_time(daily["Work"])}</b></div><div class="cat">BREAK<b>{fmt_time(daily["Break"])}</b></div><div class="cat">OTHER<b>{fmt_time(daily["Other"])}</b></div></div><div class="timerbuttons"><form method="post" action="/timer"><input type="hidden" name="action" value="drive"><button>🚙 Drive</button></form><form method="post" action="/timer"><input type="hidden" name="action" value="work"><button class="work">🛠 Work</button></form><form method="post" action="/timer"><input type="hidden" name="action" value="break"><button class="break">☕ Break</button></form><form method="post" action="/timer"><input type="hidden" name="action" value="stop"><button>■ Stop</button></form></div></div>"""
@@ -240,6 +261,11 @@ class H(BaseHTTPRequestHandler):
             f=ROOT/"SYSTEM"/"vendor"/path.rsplit("/",1)[-1]
             if f.exists():
                 b=f.read_bytes(); self.send_response(200); self.send_header("Content-Type","application/javascript" if path.endswith(".js") else "text/css"); self.send_header("Content-Length",str(len(b))); self.end_headers(); self.wfile.write(b); return
+        if path == "/nav":
+            q=parse_qs(urlparse(self.path).query)
+            lat=q.get("lat",[""])[0]; lon=q.get("lon",[""])[0]
+            launch_google_maps(lat,lon,q.get("ju",[""])[0])
+            self.send_response(303); self.send_header("Location","/map"); self.end_headers(); return
         if path == "/map":
             b=map_page().encode(); self.send_response(200); self.send_header("Content-Type","text/html; charset=utf-8"); self.send_header("Content-Length",str(len(b))); self.end_headers(); self.wfile.write(b)
         elif urlparse(self.path).path == "/hone":
