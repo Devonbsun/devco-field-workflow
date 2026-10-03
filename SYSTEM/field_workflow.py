@@ -40,7 +40,7 @@ CODES = {
     "1": "WC1F",
     "2": "PM2A",
     "3": "PE1-3G",
-    "4": "TRIP CHARGE [CODE PENDING]",
+    "4": "TRIP CHARGE",
 
     "5": "BM80",
     "6": "BM80PF",
