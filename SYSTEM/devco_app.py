@@ -1,7 +1,7 @@
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import parse_qs, urlparse
-import html, json, os, subprocess, threading, zipfile, time, csv, math, re
+import html, json, os, subprocess, threading, zipfile, time, csv, math, re, shutil
 from datetime import datetime
 import xml.etree.ElementTree as ET
 from job_records import sync_job
@@ -9,6 +9,56 @@ ROOT=Path.home()/"DEVCO_FIELD"; JOBS=ROOT/"JOBS"; STATE=ROOT/".devco_app_state.j
 lock=threading.Lock(); field_proc=None; active_job=None; active_ju=None
 BILLING_CODES="WC1F PM2A PE1-3G BM80 BM80PF BM82 BM83(A) BM83(B) PE1-3 PE1-3G(JO) PF1-6A(JO) PM11 PM2 PM2(JO) PM2AF PM2C PM52 PM52(A) PM54(A) PM92 R1-5(A) R1-5(AF) WC1 WEC1 WEC1F WPE1 WPE1(JO) WSEA(A) XXCOE XXCW XXPF XXPM11 XXPM5 XXSEA(A) XXSTRAND".split()
 AUTO_TRIP={"TRANSFER ALREADY COMPLETED","NO IDENTIFIABLE WINDSTREAM LINE ON POLE"}
+SOLOCATOR=Path("/storage/emulated/0/Pictures/Solocator")
+PHOTO_MATCH_METERS=120
+_photo_seen=set()
+
+def _photo_gps(path):
+    try:
+        r=subprocess.run(["exiftool","-n","-s3","-GPSLatitude","-GPSLongitude",str(path)],capture_output=True,text=True,timeout=10)
+        vals=[x.strip() for x in r.stdout.splitlines() if x.strip()]
+        if len(vals)>=2:return float(vals[0]),float(vals[1])
+    except Exception: pass
+    return None
+
+def import_solocator_photo(photo, quiet=False):
+    global active_job, active_ju
+    gps=_photo_gps(photo)
+    if not gps:return None
+    # Search every active/new-architecture job. The photo GPS is the source of truth.
+    choices=[]
+    for job in jobs():
+        for pole in ju_points(job):
+            meters=_miles({"lat":gps[0],"lon":gps[1]},pole)*1609.344
+            choices.append((meters,job,pole))
+    if not choices:return None
+    meters,job,pole=min(choices,key=lambda x:x[0])
+    if meters>PHOTO_MATCH_METERS:
+        if not quiet: print(f"PHOTO REVIEW {photo.name}: nearest JU {pole['ju']} {meters:.1f}m",flush=True)
+        return None
+    folder=_ju_folder(job,pole["ju"])
+    if not folder:return None
+    dest=folder/"photos"/photo.name; dest.parent.mkdir(exist_ok=True)
+    if not dest.exists(): shutil.copy2(photo,dest)
+    active_job,active_ju=job,pole["ju"]
+    if not quiet: print(f"PHOTO MATCH {photo.name} -> {job} JU {pole['ju']} ({meters:.1f}m)",flush=True)
+    return {"job":job,"ju":pole["ju"],"meters":meters,"dest":str(dest)}
+
+def photo_watcher():
+    # Always-on safety net: field mode is NOT required for photo filing.
+    while True:
+        try:
+            if SOLOCATOR.exists():
+                for photo in sorted(SOLOCATOR.iterdir(),key=lambda x:x.stat().st_mtime):
+                    if not photo.is_file() or photo.suffix.lower() not in ('.jpg','.jpeg','.png'):continue
+                    key=(photo.name,photo.stat().st_size)
+                    if key in _photo_seen:continue
+                    # Avoid reading while Solocator is still finishing the image/EXIF.
+                    if time.time()-photo.stat().st_mtime<2:continue
+                    if import_solocator_photo(photo,quiet=True): _photo_seen.add(key)
+            time.sleep(2)
+        except Exception as e:
+            print(f"PHOTO WATCH ERROR: {e}",flush=True); time.sleep(3)
 
 
 def _time_dir(job):
@@ -361,6 +411,8 @@ def start_field():
     log=open(job/'1_JOB_WORKFLOW'/'field_app.log','a',buffering=1)
     field_proc=subprocess.Popen(['python',str(ROOT/'SYSTEM'/'field_workflow.py')],env=env,stdin=subprocess.DEVNULL,stdout=log,stderr=subprocess.STDOUT,start_new_session=True)
     return 'Field Mode started.'
+threading.Thread(target=photo_watcher,daemon=True,name="solocator-photo-watcher").start()
+
 class H(BaseHTTPRequestHandler):
     def send(self,msg=''):
         b=page(msg).encode(); self.send_response(200); self.send_header('Content-Type','text/html; charset=utf-8'); self.send_header('Content-Length',str(len(b))); self.end_headers(); self.wfile.write(b)
