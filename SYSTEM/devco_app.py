@@ -1,7 +1,7 @@
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import parse_qs, urlparse
-import html, json, os, subprocess, threading, zipfile, time, csv
+import html, json, os, subprocess, threading, zipfile, time, csv, math
 from datetime import datetime
 import xml.etree.ElementTree as ET
 ROOT=Path.home()/"DEVCO_FIELD"; JOBS=ROOT/"JOBS"; STATE=ROOT/".devco_app_state.json"
@@ -124,23 +124,63 @@ def route_points(job):
             return rows
     except Exception: return []
 
-def route40(job):
-    route=route_points(job); existing={x["ju"]:x for x in ju_points(job)}
-    usable=[r for r in route if r["ju"] in existing]
-    if not usable: return []
-    start=0
+def _miles(a,b):
+    # Fast haversine distance for route optimization.
+    r=3958.7613
+    p1,p2=math.radians(a["lat"]),math.radians(b["lat"])
+    dp=math.radians(b["lat"]-a["lat"]); dl=math.radians(b["lon"]-a["lon"])
+    x=math.sin(dp/2)**2+math.cos(p1)*math.cos(p2)*math.sin(dl/2)**2
+    return 2*r*math.asin(min(1,math.sqrt(x)))
+
+def _route_miles(seq):
+    return sum(_miles(seq[i-1],seq[i]) for i in range(1,len(seq)))
+
+def optimized_route(job):
+    # Optimize only JUs that actually exist in the active job. This also fixes
+    # the historical spreadsheet mismatch where route rows can outnumber JU folders.
+    pts=[dict(x) for x in ju_points(job) if not x["done"]]
+    if not pts: return []
+
+    # Start at the active JU when possible; otherwise use the first unfinished
+    # spreadsheet stop so field crews keep a stable starting area.
+    start=None
     if active_ju:
-        for i,r in enumerate(usable):
-            if r["ju"]==active_ju: start=i; break
-    else:
-        for i,r in enumerate(usable):
-            if not existing[r["ju"]]["done"]: start=i; break
-    out=[]
-    for r in usable[start:]+usable[:start]:
-        if not existing[r["ju"]]["done"]:
-            out.append(r)
-            if len(out)==40: break
-    return out
+        start=next((x for x in pts if x["ju"]==active_ju),None)
+        if start is None:
+            start=next((x for x in ju_points(job) if x["ju"]==active_ju),None)
+    if start is None:
+        order={r["ju"]:i for i,r in enumerate(route_points(job))}
+        pts.sort(key=lambda x:order.get(x["ju"],10**9))
+        start=pts[0]
+
+    # Nearest-neighbor gives a strong field route quickly.
+    remaining=[x for x in pts if x["ju"]!=start["ju"]]
+    route=[]
+    current=start
+    if any(x["ju"]==start["ju"] for x in pts):
+        route.append(start)
+    while remaining:
+        nxt=min(remaining,key=lambda x:_miles(current,x))
+        route.append(nxt); remaining.remove(nxt); current=nxt
+
+    # 2-opt refinement removes crossing/backtracking segments.
+    # A few passes is enough for hundreds of JUs and keeps map loading instant.
+    n=len(route)
+    for _ in range(4):
+        improved=False
+        for i in range(1,n-2):
+            a,b=route[i-1],route[i]
+            for k in range(i+1,min(n-1,i+70)):
+                c,d=route[k],route[k+1]
+                if _miles(a,b)+_miles(c,d) > _miles(a,c)+_miles(b,d)+0.01:
+                    route[i:k+1]=reversed(route[i:k+1]); improved=True
+        if not improved: break
+    for i,x in enumerate(route,1):
+        x["stop"]=i
+    return route
+
+def route40(job):
+    return optimized_route(job)[:40]
 
 
 def launch_google_maps(lat, lon, ju=""):
@@ -172,7 +212,7 @@ def map_page():
 <title>DEVCO Map</title>
 <link rel="stylesheet" href="/static/leaflet.css">
 <style>html,body,#map{{height:100%;margin:0}}body{{font-family:system-ui}}#bar{{position:absolute;z-index:1000;top:10px;left:10px;right:10px;background:#071019ee;padding:12px;border-radius:16px;border:1px solid #314653;box-shadow:0 8px 24px #0008;color:white;display:flex;gap:8px;align-items:center}}#bar a{{color:white;text-decoration:none;background:#26384b;padding:10px 12px;border-radius:10px}}#bar span{{flex:1}}.nav,.activate{{display:inline-block;padding:9px 12px;background:#36c275;color:#07140d!important;border-radius:9px;text-decoration:none;font-weight:700;border:0;margin:3px}}.activate{{background:#168cff;color:white!important}}</style></head>
-<body><div id="bar"><a href="/">← Dashboard</a><span><b>{html.escape(selected)}</b> · {len(points)} JUs · <b>{len(route)}-STOP ROUTE</b> · <b>GPS/OFFLINE READY</b></span></div><div id="map"></div>
+<body><div id="bar"><a href="/">← Dashboard</a><span><b>{html.escape(selected)}</b> · {len(points)} JUs · <b>{len(route)}-STOP OPTIMIZED ROUTE</b> · <b>GPS/OFFLINE READY</b></span></div><div id="map"></div>
 <script src="/static/leaflet.js"></script><script>
 const pts={data}; const route={route_data}; const map=L.map('map');
 const tiles=L.tileLayer('https://{{s}}.tile.openstreetmap.org/{{z}}/{{x}}/{{y}}.png',{{maxZoom:20,attribution:'© OpenStreetMap'}});
