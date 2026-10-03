@@ -253,8 +253,18 @@ if(route.length){{
 }}
 pts.forEach(p=>{{let m=L.circleMarker([p.lat,p.lon],{{radius:p.done?7:9,color:p.done?'#6b7b88':'#e53935',fillColor:p.done?'#6b7b88':'#ff3b30',fillOpacity:.9,weight:3}}).addTo(map);
 m.bindPopup('<b>JU '+p.ju+'</b><br>'+p.address+'<br><b>'+(p.done?'COMPLETED':'NOT COMPLETE')+'</b><br><b>'+(p.condition_code||'NO CODE')+'</b><br>'+(p.condition_desc||'')+'<br><br><form method="post" action="/activate" style="display:inline"><input type="hidden" name="ju" value="'+p.ju+'"><button class="activate">Make Active JU</button></form><a class="nav" href="/nav?lat='+p.lat+'&lon='+p.lon+'&ju='+encodeURIComponent(p.ju)+'">Navigate</a>'); bounds.push([p.lat,p.lon]);}});
-if(bounds.length) map.fitBounds(bounds,{{padding:[25,25]}}); else map.setView([41.6,-93.6],9);
-if(navigator.geolocation) navigator.geolocation.watchPosition(x=>{{let q=[x.coords.latitude,x.coords.longitude]; if(window.me) window.me.setLatLng(q); else window.me=L.circleMarker(q,{{radius:8,color:'#168cff',fillColor:'#168cff',fillOpacity:1}}).addTo(map).bindPopup('You are here');}},()=>{{}},{{enableHighAccuracy:true}});
+// Start with a useful fallback while GPS acquires instead of fitting all 298 JUs.
+if(route.length) map.setView([route[0].lat,route[0].lon],16);
+else if(bounds.length) map.setView(bounds[0],16);
+else map.setView([41.6,-93.6],16);
+let centeredOnMe=false;
+if(navigator.geolocation) navigator.geolocation.watchPosition(x=>{{
+  let q=[x.coords.latitude,x.coords.longitude];
+  if(window.me) window.me.setLatLng(q); else window.me=L.circleMarker(q,{{radius:9,color:'#168cff',fillColor:'#168cff',fillOpacity:1,weight:3}}).addTo(map).bindPopup('You are here');
+  // On opening the map, jump to the worker and use pole-level zoom.
+  // Keep following position without stealing the map after the user pans/zooms.
+  if(!centeredOnMe){{ map.setView(q,18); centeredOnMe=true; }}
+}},()=>{{}},{{enableHighAccuracy:true,maximumAge:0,timeout:10000}});
 </script></body></html>"""
 
 def active_card():
