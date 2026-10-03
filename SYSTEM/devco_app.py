@@ -295,8 +295,14 @@ class H(BaseHTTPRequestHandler):
             else: msg='Unknown timer action.'
         elif self.path=='/start': msg=start_field()
         elif self.path=='/stop':
-            if field_proc and field_proc.poll() is None: field_proc.terminate(); msg='Field Mode stopped.'
-            else: msg='Field Mode is not running.'
+            # Stopping Field Mode also ends the active time category at this exact moment.
+            # This writes the final Drive/Work/Break segment to TIME_TRACKING.csv.
+            if active_job:
+                stop_timer(active_job)
+            if field_proc and field_proc.poll() is None:
+                field_proc.terminate(); msg='Field Mode stopped. Time tracking stopped.'
+            else:
+                msg='Field Mode is not running. Time tracking stopped.'
         else: msg='Unknown action.'
         self.send(msg)
     def log_message(self,*a): pass
