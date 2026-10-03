@@ -511,20 +511,34 @@ class H(BaseHTTPRequestHandler):
             try:
                 lat=float(q.get("lat",[""])[0]); lon=float(q.get("lon",[""])[0])
                 acc=float(q.get("accuracy",["999"])[0])
-                candidates=ju_points(active_job) if active_job else []
-                if not candidates: raise ValueError("No JUs")
+                if not all(math.isfinite(v) for v in (lat,lon,acc)) or not (-90<=lat<=90 and -180<=lon<=180 and acc>=0):
+                    raise ValueError("Invalid GPS coordinates")
+                automatic=q.get("auto",[""])[0]=="1"
                 here={"lat":lat,"lon":lon}
-                nearest=min(candidates,key=lambda x:_miles(here,x))
-                meters=_miles(here,nearest)*1609.344
-                # Auto-connect only when GPS is credible and the worker is physically near a pole.
-                # 45 m handles normal phone GPS drift without jumping to poles while driving past.
+                candidates=[dict(p,job=j) for j in (jobs() if automatic else ([active_job] if active_job else [])) for p in ju_points(j)]
+                if not candidates: raise ValueError("No imported jobs with pole coordinates")
+                ranked=sorted(candidates,key=lambda p:_miles(here,p))
+                nearest=ranked[0]; meters=_miles(here,nearest)*1609.344
+                ambiguous=len(ranked)>1 and (_miles(here,ranked[1])*1609.344-meters)<PHOTO_AMBIGUITY_METERS
                 switched=False
-                if acc <= 35 and meters <= 45 and not active_ju:
-                    active_ju=nearest["ju"]; save_app_state()
-                    start_timer(active_job,"Work",active_ju)
-                    switched=True
+                if acc>35:
+                    message="Waiting for a more accurate GPS location"
+                elif meters>45:
+                    message="Looking for a pole within 45 m — map and navigation are available"
+                elif ambiguous:
+                    message="Two poles are close together — choose the correct JU on the map"
+                elif nearest["done"]:
+                    message="Nearby JU is already recorded complete; keeping your next stop"
+                else:
+                    message="Located job "+nearest["job"]+" · JU "+nearest["ju"]
+                    different=(nearest["job"],nearest["ju"])!=(active_job,active_ju)
+                    if different and (automatic or not active_ju):
+                        if active_job and active_job!=nearest["job"]: stop_timer(active_job)
+                        active_job=nearest["job"]; active_ju=nearest["ju"]; save_app_state()
+                        start_timer(active_job,"Work",active_ju)
+                        switched=True
                 payload={"ok":True,"nearest":nearest,"distance_m":round(meters,1),
-                         "active_ju":active_ju,"switched":switched}
+                         "active_job":active_job,"active_ju":active_ju,"switched":switched,"message":message}
                 b=json.dumps(payload).encode()
                 self.send_response(200); self.send_header("Content-Type","application/json"); self.send_header("Cache-Control","no-store"); self.send_header("Content-Length",str(len(b))); self.end_headers(); self.wfile.write(b); return
             except Exception as e:

@@ -21,7 +21,7 @@ def page(app, msg=""):
         <h2>2. Notes &amp; codes</h2><a class="primary" href="/billing">Review &amp; finish this JU</a>
         <p class="muted">After saving, the next unfinished JU appears here. Tap Navigate when ready.</p></section>"""
     else:
-        active = '<section><h1>Choose your first pole</h1><p>Select a JU on the map. New Solocator photos can also identify the JU by GPS.</p><a class="primary" href="/map">Open map &amp; route</a></section>'
+        active = '<section><h1>Finding your job &amp; pole</h1><p>Your location automatically loads the matching job and JU when you are nearby. Solocator photos can identify it too.</p><a class="primary" href="/map">Open map &amp; route</a></section>'
     st = app["timer_state"](job) if job else {}
     timer = esc(st.get("category") or "Stopped")
     controls = "".join('<button name="action" value="%s">%s</button>' % (v, label) for v,label in [("drive","Drive"),("work","Work"),("break","Break"),("stop","Stop")])
@@ -30,7 +30,7 @@ def page(app, msg=""):
     return """<!doctype html><html><head><meta name="viewport" content="width=device-width,initial-scale=1"><title>DEVCO Field</title>
 <style>*{box-sizing:border-box}body{margin:0;background:#09131b;color:#edf4f7;font:17px system-ui}main{max-width:620px;margin:auto;padding:18px}header{display:flex;align-items:center;justify-content:space-between}header b{color:#4cdd92}section,details{background:#13232e;border:1px solid #304754;border-radius:14px;padding:18px;margin:15px 0}h1{margin:6px 0;font-size:30px}h2{font-size:19px;margin:24px 0 8px}p{line-height:1.45}small,.muted{color:#a8bdc9}.muted{font-size:14px}a,button{display:block;border:1px solid #456071;border-radius:10px;padding:14px;color:white;background:#203846;text-align:center;text-decoration:none;font:600 16px system-ui;min-height:48px}.primary{background:#4cdd92;color:#06180e;border:0}.row{display:flex;gap:8px}.row>*{flex:1}.notice{padding:12px;border-left:4px solid #f1b866;background:#352b19}select{width:100%;padding:12px;background:#09131b;color:white;font:16px system-ui;margin:12px 0}summary{cursor:pointer;font-weight:600}#connection{font-size:14px;color:#a8bdc9}</style></head><body><main>
 <header><b>DEVCO FIELD</b><a href="/map">Map &amp; route</a></header>
-<p id="connection">Photo filing connected</p>__MESSAGE____ACTIVE__
+<p id="location" role="status">Finding your location…</p><p id="connection">Photo filing connected</p>__MESSAGE____ACTIVE__
 <details><summary>Job &amp; time · __COUNT__ completed</summary><p>Current job: __JOB__</p>
 <form method="post" action="/select"><select name="job">__OPTIONS__</select><button>Switch job</button></form>
 <p>Timer: __TIMER__</p><form class="row" method="post" action="/timer">__CONTROLS__</form></details>
@@ -38,6 +38,20 @@ def page(app, msg=""):
 const identity=__IDENTITY__;
 const saved=new URLSearchParams(location.search).get("saved");
 if(saved){try{localStorage.removeItem("devco-closeout:"+saved);}catch(e){}history.replaceState(null,"","/");}
+let locating=false,lastLocate=0;
+if(navigator.geolocation){
+ navigator.geolocation.watchPosition(async p=>{
+  if(document.hidden||locating||Date.now()-lastLocate<5000)return;
+  locating=true;lastLocate=Date.now();
+  try{
+   const q=new URLSearchParams({auto:'1',lat:p.coords.latitude,lon:p.coords.longitude,accuracy:p.coords.accuracy});
+   const r=await fetch('/gps-nearest?'+q,{cache:'no-store'}),s=await r.json();
+   document.getElementById('location').textContent=s.message||s.error||'Waiting for GPS';
+   if(s.switched)location.replace('/');
+  }catch(e){document.getElementById('location').textContent='Could not locate your JU. Retrying with the next GPS update.';}
+  finally{locating=false;}
+ },e=>{document.getElementById('location').textContent=e.code===1?'Allow location for DEVCO Field to load jobs automatically. You can also use Solocator or the map.':'Waiting for GPS — move where your phone can get a location.';},{enableHighAccuracy:true,maximumAge:3000,timeout:15000});
+}else{document.getElementById('location').textContent='Live location unavailable. Use Solocator or choose from the map.';}
 let checking=false;
 async function check(){
  if(checking||document.hidden)return;

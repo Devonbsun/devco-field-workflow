@@ -30,7 +30,7 @@ class SimpleFlow(unittest.TestCase):
         home=self.get("/")
         self.assertIn("1. Take photos",home)
         self.assertNotIn("FIELD TOOLS",home)
-        self.assertNotIn("watchPosition",home)
+        self.assertIn("watchPosition",home)
         self.assertEqual(json.loads(self.get("/status"))["photos"],2)
         billing=self.get("/billing")
         self.assertIn('name="job" value="TEST"',billing)
@@ -61,5 +61,29 @@ class SimpleFlow(unittest.TestCase):
             self.assertTrue((self.folder/"photos"/"new.jpg").exists())
         self.assertFalse(app.save_closeout("TEST","101","PENDING",[],"")[0])
         self.assertFalse(app.save_closeout("TEST","101","FIBER TRANSFER COMPLETED",[],"")[0])
+
+    def test_auto_location_selects_job_and_ju(self):
+        app.active_job=None;app.active_ju=None
+        result=json.loads(self.get("/gps-nearest?auto=1&lat=41.7&lon=-93.7&accuracy=5"))
+        self.assertTrue(result["switched"])
+        self.assertEqual((app.active_job,app.active_ju),("TEST","102"))
+    def test_auto_location_rejects_poor_and_far_gps(self):
+        for query in ["lat=41.7&lon=-93.7&accuracy=100","lat=40&lon=-90&accuracy=5"]:
+            result=json.loads(self.get("/gps-nearest?auto=1&"+query))
+            self.assertFalse(result["switched"])
+            self.assertEqual(app.active_ju,"101")
+    def test_auto_location_rejects_ambiguous_jobs(self):
+        import shutil
+        shutil.copytree(app.JOBS/"TEST",app.JOBS/"OTHER")
+        result=json.loads(self.get("/gps-nearest?auto=1&lat=41.7&lon=-93.7&accuracy=5"))
+        self.assertFalse(result["switched"])
+        self.assertIn("Two poles",result["message"])
+    def test_auto_location_keeps_next_stop_after_completion(self):
+        with patch.object(app,"sync_job"):
+            app.save_closeout("TEST","101","FIBER TRANSFER COMPLETED",[("WC1F","1")],"")
+        app.active_ju="102"
+        result=json.loads(self.get("/gps-nearest?auto=1&lat=41.6&lon=-93.6&accuracy=5"))
+        self.assertFalse(result["switched"])
+        self.assertEqual(app.active_ju,"102")
 
 if __name__=="__main__":unittest.main()
