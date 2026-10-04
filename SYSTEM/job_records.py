@@ -20,13 +20,16 @@ def _parse_info(p):
  return d
 
 def _parse_record(p):
- out={"status":"","billing":[],"notes":[]}
+ out={"status":"","billing":[],"notes":[],"completed_at":""}
  if not p.exists(): return out
  txt=p.read_text(errors='ignore')
  sts=re.findall(r'^STATUS:\s*(.+)$',txt,re.M)
  if sts: out['status']=sts[-1].strip().upper()
- # Capture code x qty lines but not headings.
- out['billing']=re.findall(r'^([A-Z0-9][A-Z0-9()\- \[\]/]+?)\s+x(\d+)\s*$',txt,re.M)
+ # Read only the most recent billing section, never code-looking note text.
+ blocks=re.findall(r'^BILLING:\n(.*?)(?=^NOTES:|\Z)',txt,re.M|re.S)
+ out['billing']=re.findall(r'^([A-Z0-9][A-Z0-9()\- \[\]/]+?)\s+x(\d+)\s*$',blocks[-1] if blocks else '',re.M)
+ dates=re.findall(r'^COMPLETED_AT:\s*(.+)$',txt,re.M)
+ if dates: out['completed_at']=dates[-1].strip()
  notes=re.findall(r'^NOTES:\n(.*?)(?=^={5,}\s*$|\Z)',txt,re.M|re.S)
  if notes: out['notes']=[notes[-1].strip()]
  return out
@@ -64,7 +67,7 @@ def collect(job_dir):
    'State':state,'Close Code':close,'Photo Count':len(photos),
    'Billing Codes':'; '.join(f'{c} x{q}' for c,q in rec['billing']),'Notes':'; '.join(rec['notes']),
    'Photo Files':'; '.join(photos),'Drive Time':_fmt(drive),'Work Time':_fmt(work),
-   'Completed At':datetime.fromtimestamp((info.parent/'BILLING_AND_NOTES.txt').stat().st_mtime).isoformat(timespec='seconds') if state=='COMPLETE' and (info.parent/'BILLING_AND_NOTES.txt').exists() else ''
+   'Completed At':rec.get('completed_at') or datetime.fromtimestamp((info.parent/'BILLING_AND_NOTES.txt').stat().st_mtime).isoformat(timespec='seconds') if state=='COMPLETE' and (info.parent/'BILLING_AND_NOTES.txt').exists() else ''
   })
  return rows
 

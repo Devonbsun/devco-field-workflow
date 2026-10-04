@@ -38,6 +38,13 @@ public class MainActivity extends Activity {
                 String scheme = uri.getScheme();
                 String host = uri.getHost();
 
+                // Launch from the foreground Activity, not the background Termux host.
+                if ("http".equals(scheme) && "127.0.0.1".equals(host)
+                        && uri.getPort() == 8765 && "/camera".equals(uri.getPath())) {
+                    openSolocator();
+                    return true;
+                }
+
                 // DEVCO local /nav links are converted here into a native
                 // Google Maps navigation intent. This works even when Maps
                 // is already open.
@@ -168,6 +175,20 @@ public class MainActivity extends Activity {
         foreground = false;
         hostHandler.removeCallbacksAndMessages(null);
         super.onDestroy();
+    }
+
+    private void openSolocator() {
+        try {
+            Intent launch = getPackageManager().getLaunchIntentForPackage("com.solocator");
+            if (launch == null) {
+                launch = new Intent(Intent.ACTION_MAIN);
+                launch.addCategory(Intent.CATEGORY_LAUNCHER);
+                launch.setClassName("com.solocator", "com.solocator.splash.SplashActivity");
+            }
+            startActivity(launch);
+        } catch (Exception e) {
+            Toast.makeText(this, "Solocator could not open. Check that it is installed and enabled.", Toast.LENGTH_LONG).show();
+        }
     }
 
     private void openGoogleMaps(String lat, String lon) {

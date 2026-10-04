@@ -4,8 +4,13 @@ from urllib.parse import parse_qs, urlparse
 import html, json, os, subprocess, threading, zipfile, time, csv, math, re, shutil, fcntl
 from datetime import datetime
 import xml.etree.ElementTree as ET
-from job_records import sync_job
+from job_records import sync_job as _sync_job
 from note_store import read_note, save_note
+from record_editor import RECORD_LOCK, record_write, atomic_text, folder_for, photo_items, IMAGE_TYPES, records_page, edit_page, save_edit, Conflict
+
+@record_write
+def sync_job(job_dir):
+    return _sync_job(job_dir)
 ROOT=Path.home()/"DEVCO_FIELD"; JOBS=ROOT/"JOBS"; STATE=ROOT/".devco_app_state.json"
 lock=threading.Lock(); field_proc=None; field_mode=False; active_job=None; active_ju=None; APP_STARTED=time.time()
 BILLING_CODES="WC1F PM2A PE1-3G BM80 BM80PF BM82 BM83(A) BM83(B) PE1-3 PE1-3G(JO) PF1-6A(JO) PM11 PM2 PM2(JO) PM2AF PM2C PM52 PM52(A) PM54(A) PM92 R1-5(A) R1-5(AF) WC1 WEC1 WEC1F WPE1 WPE1(JO) WSEA(A) XXCOE XXCW XXPF XXPM11 XXPM5 XXSEA(A) XXSTRAND".split()
@@ -353,6 +358,7 @@ def billing_page(msg=''):
     form=form.replace('<form method="post" action="/finish">','<form method="post" action="/finish">'+hidden)
     return '<!doctype html>'+css+top+warn+form+billing_draft_script(active_job,active_ju)
 
+@record_write
 def save_closeout(job,ju,close,codes,note):
     allowed={'FIBER TRANSFER COMPLETED','TRANSFER ALREADY COMPLETED','NO SERVICES ON POLE','NO IDENTIFIABLE WINDSTREAM LINE ON POLE','PENDING'}
     if close not in allowed:return False,'Invalid close code.'
@@ -483,11 +489,36 @@ def start_field():
 
 
 class H(BaseHTTPRequestHandler):
+    def reply(self, body, content_type='text/html; charset=utf-8', status=200):
+        b=body if isinstance(body,bytes) else body.encode()
+        self.send_response(status)
+        self.send_header('Content-Type',content_type)
+        self.send_header('Cache-Control','no-store')
+        self.send_header('X-Content-Type-Options','nosniff')
+        self.send_header('Content-Length',str(len(b)))
+        self.end_headers(); self.wfile.write(b)
     def send(self,msg=''):
         b=page(msg).encode(); self.send_response(200); self.send_header('Content-Type','text/html; charset=utf-8'); self.send_header('Content-Length',str(len(b))); self.end_headers(); self.wfile.write(b)
     def do_GET(self):
         global active_job, active_ju
         path=urlparse(self.path).path
+        if path in ('/records','/record','/photos','/photo'):
+            q=parse_qs(urlparse(self.path).query)
+            job=q.get('job',[active_job or ''])[0]; ju=q.get('ju',[''])[0]
+            try:
+                if path=='/records':
+                    self.reply(records_page(globals(),job)); return
+                folder=folder_for(globals(),job,ju)
+                if path=='/record':
+                    self.reply(edit_page(globals(),job,ju)); return
+                if path=='/photos':
+                    self.reply(json.dumps(photo_items(folder,job,ju)),'application/json'); return
+                name=q.get('name',[''])[0]; photo=folder/'photos'/name
+                if not name or Path(name).name!=name or photo.suffix.lower() not in IMAGE_TYPES or photo.resolve().parent!=(folder/'photos').resolve() or not photo.is_file():
+                    raise ValueError('Photo not found')
+                self.reply(photo.read_bytes(),IMAGE_TYPES[photo.suffix.lower()]); return
+            except ValueError as error:
+                self.reply(html.escape(str(error)),status=404); return
         if path == "/health":
             ready=any(t.name == "solocator-photo-watcher" and t.is_alive() for t in threading.enumerate())
             b=json.dumps({"service":"devco-field","ready":ready,"pid":os.getpid(),"uptime":round(time.time()-APP_STARTED,1)}).encode()
@@ -505,7 +536,7 @@ class H(BaseHTTPRequestHandler):
             b=billing_page().encode(); self.send_response(200); self.send_header("Content-Type","text/html; charset=utf-8"); self.send_header("Content-Length",str(len(b))); self.end_headers(); self.wfile.write(b); return
         if path == "/camera":
             try:
-                result=subprocess.run(["am","start","-a","android.intent.action.MAIN","-c","android.intent.category.LAUNCHER","-p","com.solocator"],capture_output=True,text=True,timeout=10)
+                result=subprocess.run(["am","start","--user","0","-a","android.intent.action.MAIN","-c","android.intent.category.LAUNCHER","-n","com.solocator/com.solocator.splash.SplashActivity"],capture_output=True,text=True,timeout=10)
                 output=result.stdout+result.stderr
                 if result.returncode or "Error" in output or "Exception" in output:
                     self.send("Solocator did not open. Open it from your phone; new photos will still be checked for GPS filing."); return
@@ -562,13 +593,33 @@ class H(BaseHTTPRequestHandler):
         else: self.send()
     def do_POST(self):
         global active_job, field_proc, field_mode, active_ju
+        if self.path=='/record-save':
+            try:
+                n=int(self.headers.get('Content-Length','0'))
+                if n<=0 or n>100000: raise ValueError('Invalid record size')
+                data=json.loads(self.rfile.read(n))
+                if not isinstance(data,dict) or not isinstance(data.get('note'),str) or not isinstance(data.get('billing'),list):
+                    raise ValueError('Invalid record')
+                if not all(isinstance(pair,list) and len(pair)==2 and all(isinstance(v,str) for v in pair) for pair in data['billing']):
+                    raise ValueError('Invalid billing codes')
+                if not all(isinstance(data.get(k),str) for k in ('job','ju','revision')): raise ValueError('Invalid JU')
+                result=save_edit(globals(),data['job'],data['ju'],data['revision'],data['note'],data['billing'])
+                self.reply(json.dumps(result),'application/json'); return
+            except Conflict as error:
+                self.reply(json.dumps({'ok':False,'error':str(error)}),'application/json',409); return
+            except (ValueError,TypeError) as error:
+                self.reply(json.dumps({'ok':False,'error':str(error)}),'application/json',400); return
+            except Exception as error:
+                print('JU edit error:',error,flush=True)
+                self.reply(json.dumps({'ok':False,'error':'Could not save the JU. Retry when connected.'}),'application/json',500); return
         n=int(self.headers.get('Content-Length','0')); data=parse_qs(self.rfile.read(n).decode(),keep_blank_values=True)
         if self.path=='/note':
             job=data.get('job',[''])[0]; ju=data.get('ju',[''])[0]
             folder=_ju_folder(job,ju) if job in jobs() and ju else None
             try:
                 if not folder: raise ValueError('JU not found')
-                save_note(folder,data.get('note',[''])[0])
+                with RECORD_LOCK:
+                    save_note(folder,data.get('note',[''])[0])
                 payload={"ok":True}; code=200
             except Exception as e:
                 payload={"ok":False,"error":str(e)}; code=400
