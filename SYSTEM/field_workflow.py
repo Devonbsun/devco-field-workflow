@@ -339,9 +339,10 @@ def billing_prompt(pole, photos, input_fn=input):
     print("JOB CLOSE CODE")
     print("1) FIBER TRANSFER COMPLETED (2+ photos)")
     print("2) TRANSFER ALREADY COMPLETED (1+ photo)")
-    print("3) NO SERVICES ON POLE (1+ photo)")
+    print("3) NO SERVICES ON POLE (1+ photo; Trip Charge $40)")
     print("4) NO IDENTIFIABLE WINDSTREAM LINE ON POLE (1+ photo)")
     print("5) PENDING (trip made; remains incomplete)")
+    print("6) ADSS (1+ photo; Trip Charge $40)")
     print()
 
     close_choices = {
@@ -350,11 +351,12 @@ def billing_prompt(pole, photos, input_fn=input):
         "3": ("NO SERVICES ON POLE", 1),
         "4": ("NO IDENTIFIABLE WINDSTREAM LINE ON POLE", 1),
         "5": ("PENDING", 1),
+        "6": ("ADSS", 1),
     }
     while True:
         status_choice = input_fn("Close code # [1]: ").strip() or "1"
         if status_choice not in close_choices:
-            print("Enter 1 through 5."); continue
+            print("Enter 1 through 6."); continue
         status, required_photos = close_choices[status_choice]
         if len(photos) < required_photos:
             print(f"Cannot close as {status}: requires at least {required_photos} photo(s); currently {len(photos)}.")
@@ -368,6 +370,8 @@ def billing_prompt(pole, photos, input_fn=input):
     auto_trip_statuses = {
         "TRANSFER ALREADY COMPLETED",
         "NO IDENTIFIABLE WINDSTREAM LINE ON POLE",
+        "NO SERVICES ON POLE",
+        "ADSS",
     }
     selected = []
     if status in auto_trip_statuses:

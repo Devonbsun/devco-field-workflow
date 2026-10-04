@@ -119,4 +119,22 @@ class SimpleFlow(unittest.TestCase):
         self.assertEqual(read_note(self.folder),"Keep this note")
         self.assertFalse((self.folder/"BILLING_AND_NOTES.txt").exists())
 
+    def test_adss_and_no_services_apply_one_trip_charge(self):
+        from job_records import _parse_record, collect
+        (self.folder/"photos"/"two.jpg").unlink()
+        for close in ("ADSS", "NO SERVICES ON POLE"):
+            app.active_ju="101"
+            data=urllib.parse.urlencode(dict(job="TEST",ju="101",close=close,code="WC1",qty_WC1="9",note="Survey documented")).encode()
+            urllib.request.urlopen(self.base+"/finish",data=data).read()
+            record=_parse_record(self.folder/"BILLING_AND_NOTES.txt")
+            self.assertEqual(record["status"],close)
+            self.assertEqual(record["billing"],[("TRIP CHARGE","1")])
+            self.assertEqual(record["notes"],["Survey documented"])
+            row=next(r for r in collect(app.JOBS/"TEST") if r["JU"]=="101")
+            self.assertEqual(row["State"],"COMPLETE")
+            self.assertEqual(row["Billing Codes"],"TRIP CHARGE x1")
+        (self.folder/"photos"/"one.jpg").unlink()
+        for close in ("ADSS", "NO SERVICES ON POLE"):
+            self.assertFalse(app.save_closeout("TEST","101",close,[],"")[0])
+
 if __name__=="__main__":unittest.main()

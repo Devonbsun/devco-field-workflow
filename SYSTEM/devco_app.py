@@ -14,7 +14,7 @@ def sync_job(job_dir):
 ROOT=Path.home()/"DEVCO_FIELD"; JOBS=ROOT/"JOBS"; STATE=ROOT/".devco_app_state.json"
 lock=threading.Lock(); field_proc=None; field_mode=False; active_job=None; active_ju=None; APP_STARTED=time.time()
 BILLING_CODES="WC1F PM2A PE1-3G BM80 BM80PF BM82 BM83(A) BM83(B) PE1-3 PE1-3G(JO) PF1-6A(JO) PM11 PM2 PM2(JO) PM2AF PM2C PM52 PM52(A) PM54(A) PM92 R1-5(A) R1-5(AF) WC1 WEC1 WEC1F WPE1 WPE1(JO) WSEA(A) XXCOE XXCW XXPF XXPM11 XXPM5 XXSEA(A) XXSTRAND".split()
-AUTO_TRIP={"TRANSFER ALREADY COMPLETED","NO IDENTIFIABLE WINDSTREAM LINE ON POLE"}
+AUTO_TRIP={"TRANSFER ALREADY COMPLETED","NO IDENTIFIABLE WINDSTREAM LINE ON POLE","NO SERVICES ON POLE","ADSS"}
 SOLOCATOR=Path("/storage/emulated/0/Pictures/Solocator")
 PHOTO_MATCH_METERS=120
 _photo_seen=set()
@@ -350,7 +350,7 @@ def billing_page(msg=''):
     chips=''.join('<label><input type="checkbox" name="code" value="'+c+'"><b>'+c+'</b> Qty <input type="number" name="qty_'+c+'" value="1" min="1"></label>' for c in BILLING_CODES)
     top='<a href="/">&larr; Active JU</a><div class="card"><small>GPS ACTIVE JU</small><h1>'+html.escape(active_ju)+'</h1><div>'+html.escape(q.get('address',''))+'</div><p><b>'+html.escape(q.get('condition_code',''))+'</b><br>'+html.escape(q.get('condition_desc',''))+'</p><b>Photos attached: '+str(len(photos))+'</b></div>'
     warn=('<div class="card warn">'+html.escape(msg)+'</div>') if msg else ''
-    form='<form method="post" action="/finish"><div class="card"><h2>WORK PERFORMED</h2><p>Select every billing code actually performed. Quantity defaults to 1.</p>'+chips+'<textarea name="note" placeholder="Optional note - normal transfers need no note"></textarea><button class="go" name="close" value="FIBER TRANSFER COMPLETED">FINISH TRANSFER</button></div><div class="card"><h2>NO WORK NEEDED</h2><button class="no" name="close" value="TRANSFER ALREADY COMPLETED">Already completed - Trip Charge $40</button><button class="no" name="close" value="NO IDENTIFIABLE WINDSTREAM LINE ON POLE">No identifiable Windstream line - Trip Charge $40</button><button class="no" name="close" value="NO SERVICES ON POLE">No services on pole</button><button class="no" name="close" value="PENDING">Pending / return needed</button></div></form>'
+    form='<form method="post" action="/finish"><div class="card"><h2>WORK PERFORMED</h2><p>Select every billing code actually performed. Quantity defaults to 1.</p>'+chips+'<textarea name="note" placeholder="Optional note - normal transfers need no note"></textarea><button class="go" name="close" value="FIBER TRANSFER COMPLETED">FINISH TRANSFER</button></div><div class="card"><h2>NO WORK NEEDED</h2><button class="no" name="close" value="TRANSFER ALREADY COMPLETED">Already completed - Trip Charge $40</button><button class="no" name="close" value="NO IDENTIFIABLE WINDSTREAM LINE ON POLE">No identifiable Windstream line - Trip Charge $40</button><button class="no" name="close" value="NO SERVICES ON POLE">No services on pole - Trip Charge $40</button><button class="no" name="close" value="ADSS">ADSS - Trip Charge $40</button><button class="no" name="close" value="PENDING">Pending / return needed</button></div></form>'
     css='<meta name="viewport" content="width=device-width,initial-scale=1"><style>*{box-sizing:border-box}body{background:#071019;color:white;font-family:system-ui;padding:15px;max-width:650px;margin:auto}.card{background:#10212c;border:1px solid #294653;border-radius:16px;padding:14px;margin:12px 0}label{display:grid;grid-template-columns:25px 1fr 35px 55px;align-items:center;padding:9px;border-bottom:1px solid #294653}input[type=number]{width:50px}button{width:100%;padding:15px;margin-top:8px;border:0;border-radius:10px;font-weight:900}.go{background:#20e66b}.no{background:#1a3442;color:white}textarea{width:100%;min-height:60px;margin-top:10px}a{color:#9fc5d9}.warn{border-color:#a44c15}</style>'
     from simple_ui import billing_draft_script
     hidden='<input type="hidden" name="job" value="'+html.escape(active_job)+'"><input type="hidden" name="ju" value="'+html.escape(active_ju)+'">'
@@ -360,7 +360,7 @@ def billing_page(msg=''):
 
 @record_write
 def save_closeout(job,ju,close,codes,note):
-    allowed={'FIBER TRANSFER COMPLETED','TRANSFER ALREADY COMPLETED','NO SERVICES ON POLE','NO IDENTIFIABLE WINDSTREAM LINE ON POLE','PENDING'}
+    allowed={'FIBER TRANSFER COMPLETED','TRANSFER ALREADY COMPLETED','NO SERVICES ON POLE','NO IDENTIFIABLE WINDSTREAM LINE ON POLE','ADSS','PENDING'}
     if close not in allowed:return False,'Invalid close code.'
     folder=_ju_folder(job,ju)
     if not folder:return False,'JU not found'
@@ -370,7 +370,7 @@ def save_closeout(job,ju,close,codes,note):
     if close=='FIBER TRANSFER COMPLETED' and not codes:return False,'Select at least one billing code for work performed.'
     if close=='PENDING' and not note.strip():return False,'Pending requires a reason/note.'
     if close in AUTO_TRIP:codes=[('TRIP CHARGE','1')]
-    elif close in ('NO SERVICES ON POLE','PENDING'):codes=[]
+    elif close=='PENDING':codes=[]
     # One authoritative current closeout per JU; prevents accidental duplicate submissions.
     record=folder/'BILLING_AND_NOTES.txt'
     with record.open('w') as f:
