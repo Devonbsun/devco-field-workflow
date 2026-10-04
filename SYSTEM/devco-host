@@ -1,0 +1,35 @@
+#!/data/data/com.termux/files/usr/bin/bash
+set -eu
+ROOT="$HOME/DEVCO_FIELD"
+export PREFIX="${PREFIX:-/data/data/com.termux/files/usr}"
+export SVDIR="$PREFIX/var/service"
+export PATH="$PREFIX/bin:$PATH"
+case "${1:-ensure}" in
+  status)
+    sv status "$SVDIR/devco" "$SVDIR/devco-watchdog"
+    exec python "$ROOT/SYSTEM/host_health.py"
+    ;;
+  ensure)
+    # Serialize simultaneous app, boot and terminal launches.
+    exec 9>"$ROOT/.devco-host-start.lock"
+    flock -w 20 9
+    if [ ! -x "$SVDIR/devco/run" ]; then
+      echo "Run SYSTEM/install_host.sh first." >&2
+      exit 1
+    fi
+    termux-wake-lock
+    service-daemon start >/dev/null 2>&1 || true
+    sv -w 15 up "$SVDIR/devco"
+    sv -w 15 up "$SVDIR/devco-watchdog"
+    for attempt in {1..20}; do
+      if python "$ROOT/SYSTEM/host_health.py" --quiet; then exit 0; fi
+      sleep 1
+    done
+    echo "DEVCO has not become ready. Check $PREFIX/var/log/sv/devco/current" >&2
+    exit 1
+    ;;
+  *)
+    echo "Usage: devco-host [ensure|status]" >&2
+    exit 2
+    ;;
+esac

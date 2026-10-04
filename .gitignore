@@ -12,3 +12,13 @@ __pycache__/
 # Temporary/system files
 *.tmp
 .DS_Store
+
+# Host runtime and local signing/build material
+.devco*.lock
+ANDROID_APP/build/
+ANDROID_APP/buildtest/
+ANDROID_APP/lib/
+ANDROID_APP/*.apk
+ANDROID_APP/*.idsig
+ANDROID_APP/*.keystore
+BACKUPS/

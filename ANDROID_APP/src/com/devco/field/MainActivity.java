@@ -16,6 +16,15 @@ import android.os.Handler;
 
 public class MainActivity extends Activity {
     private WebView web;
+    private final Handler hostHandler = new Handler();
+    private boolean foreground = false, probing = false, backendLoaded = false;
+    private boolean commandPermissionRequested = false;
+    private long lastStartAttempt = 0;
+    private final Runnable hostMonitor = new Runnable() {
+        @Override public void run() {
+            if (foreground) { checkBackend(); hostHandler.postDelayed(this, 5000); }
+        }
+    };
     private String pendingGeoOrigin;
     private GeolocationPermissions.Callback pendingGeoCallback;
 
@@ -61,6 +70,15 @@ public class MainActivity extends Activity {
             @Override public boolean shouldOverrideUrlLoading(WebView view, String url) {
                 return handle(Uri.parse(url));
             }
+
+            @Override public void onReceivedError(WebView view, int code, String description, String failingUrl) {
+                if (failingUrl != null && failingUrl.startsWith("http://127.0.0.1:8765")
+                        && (failingUrl.equals(view.getUrl()) || failingUrl.equals("http://127.0.0.1:8765/"))) {
+                    backendLoaded = false;
+                    showConnecting();
+                    startBackend();
+                }
+            }
         });
         web.setWebChromeClient(new WebChromeClient() {
             @Override public void onGeolocationPermissionsShowPrompt(String origin, GeolocationPermissions.Callback callback) {
@@ -78,30 +96,78 @@ public class MainActivity extends Activity {
         web.getSettings().setDomStorageEnabled(true);
         web.getSettings().setGeolocationEnabled(true);
         setContentView(web);
-        startBackend();
-        loadBackendWithRetry(0);
+        showConnecting();
     }
 
 
-    private void loadBackendWithRetry(final int attempt) {
-        // Give Termux a moment to start the local server. Retry rather than leaving
-        // the user on WebView's connection-refused page after a cold launch.
-        new Handler().postDelayed(new Runnable() {
+    private void showConnecting() {
+        web.loadDataWithBaseURL(null, "<html><head><meta name='viewport' content='width=device-width,initial-scale=1'></head>"
+                + "<body style='background:#101820;color:white;font-family:sans-serif;padding:32px'>"
+                + "<h2>Connecting to DEVCO</h2><p>Starting your field workspace. This page reconnects automatically.</p>"
+                + "<p>If Android asks, allow DEVCO to run commands in Termux.</p></body></html>", "text/html", "UTF-8", null);
+    }
+
+    private void checkBackend() {
+        if (probing || !foreground) return;
+        probing = true;
+        new Thread(new Runnable() {
             @Override public void run() {
-                web.loadUrl("http://127.0.0.1:8765");
-                if (attempt < 4) loadBackendWithRetry(attempt + 1);
+                boolean ready = false;
+                java.net.HttpURLConnection connection = null;
+                try {
+                    connection = (java.net.HttpURLConnection) new java.net.URL("http://127.0.0.1:8765/health").openConnection();
+                    connection.setConnectTimeout(2000);
+                    connection.setReadTimeout(2000);
+                    connection.setUseCaches(false);
+                    if (connection.getResponseCode() == 200) {
+                        java.io.BufferedReader reader = new java.io.BufferedReader(new java.io.InputStreamReader(connection.getInputStream(), "UTF-8"));
+                        String body = reader.readLine();
+                        reader.close();
+                        String compact = body == null ? "" : body.replaceAll("\\s+", "");
+                        ready = compact.contains("\"service\":\"devco-field\"") && compact.contains("\"ready\":true");
+                    }
+                } catch (Exception ignored) {
+                } finally {
+                    if (connection != null) connection.disconnect();
+                }
+                final boolean healthy = ready;
+                hostHandler.post(new Runnable() {
+                    @Override public void run() {
+                        probing = false;
+                        if (!foreground) return;
+                        if (healthy) {
+                            if (!backendLoaded) {
+                                backendLoaded = true;
+                                web.loadUrl("http://127.0.0.1:8765/");
+                            }
+                        } else {
+                            // Keep any open notes intact while the host recovers.
+                            startBackend();
+                        }
+                    }
+                });
             }
-        }, attempt == 0 ? 600 : 1200);
+        }, "devco-host-check").start();
     }
 
     @Override protected void onResume() {
         super.onResume();
-        // Returning from Solocator/Maps must immediately show the newly matched JU/photos.
-        if (web != null && web.getUrl() != null) {
-            web.postDelayed(new Runnable() {
-                @Override public void run() { web.reload(); }
-            }, 900);
-        }
+        foreground = true;
+        startBackend();
+        hostHandler.removeCallbacks(hostMonitor);
+        hostHandler.post(hostMonitor);
+    }
+
+    @Override protected void onPause() {
+        foreground = false;
+        hostHandler.removeCallbacks(hostMonitor);
+        super.onPause();
+    }
+
+    @Override protected void onDestroy() {
+        foreground = false;
+        hostHandler.removeCallbacksAndMessages(null);
+        super.onDestroy();
     }
 
     private void openGoogleMaps(String lat, String lon) {
@@ -123,20 +189,35 @@ public class MainActivity extends Activity {
     }
 
     private void startBackend() {
+        if (getPackageManager().checkPermission("com.termux.permission.RUN_COMMAND", getPackageName()) != PackageManager.PERMISSION_GRANTED) {
+            if (!commandPermissionRequested) {
+                commandPermissionRequested = true;
+                try {
+                    java.lang.reflect.Method method = Activity.class.getMethod("requestPermissions", String[].class, Integer.TYPE);
+                    method.invoke(this, new Object[]{new String[]{"com.termux.permission.RUN_COMMAND"}, Integer.valueOf(78)});
+                } catch (Exception e) {
+                    Toast.makeText(this, "Allow DEVCO Field to run commands in Termux in Android app permissions.", Toast.LENGTH_LONG).show();
+                }
+            }
+            return;
+        }
+        long now = android.os.SystemClock.elapsedRealtime();
+        if (lastStartAttempt != 0 && now - lastStartAttempt < 15000) return;
+        lastStartAttempt = now;
         try {
             Intent i = new Intent();
             i.setClassName("com.termux", "com.termux.app.RunCommandService");
             i.setAction("com.termux.RUN_COMMAND");
             i.putExtra("com.termux.RUN_COMMAND_PATH", "/data/data/com.termux/files/usr/bin/bash");
             i.putExtra("com.termux.RUN_COMMAND_ARGUMENTS", new String[]{
-                "-lc",
-                "cd ~/DEVCO_FIELD && (pgrep -f 'SYSTEM/devco_app.py' >/dev/null || nohup python ~/DEVCO_FIELD/SYSTEM/devco_app.py > ~/DEVCO_FIELD/.devco_app.log 2>&1 &)"
+                "/data/data/com.termux/files/home/DEVCO_FIELD/SYSTEM/devco-host", "ensure"
             });
-            i.putExtra("com.termux.RUN_COMMAND_WORKDIR", "/data/data/com.termux/files/home");
+            i.putExtra("com.termux.RUN_COMMAND_WORKDIR", "/data/data/com.termux/files/home/DEVCO_FIELD");
             i.putExtra("com.termux.RUN_COMMAND_BACKGROUND", true);
+            i.putExtra("com.termux.RUN_COMMAND_COMMAND_LABEL", "DEVCO host recovery");
             startService(i);
         } catch (Exception e) {
-            Toast.makeText(this, "Starting DEVCO Field...", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Open Termux once, then return to DEVCO. Host startup: " + e.getClass().getSimpleName(), Toast.LENGTH_LONG).show();
         }
     }
 
@@ -155,6 +236,16 @@ public class MainActivity extends Activity {
 
     // Called by Android 6+ after the reflected runtime permission request.
     public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+        if (requestCode == 78) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                lastStartAttempt = 0;
+                startBackend();
+                checkBackend();
+            } else {
+                Toast.makeText(this, "DEVCO needs permission to start its Termux host automatically.", Toast.LENGTH_LONG).show();
+            }
+            return;
+        }
         if (requestCode == 77 && pendingGeoCallback != null) {
             boolean allowed = grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED;
             pendingGeoCallback.invoke(pendingGeoOrigin, allowed, false);

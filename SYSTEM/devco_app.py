@@ -1,7 +1,7 @@
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import parse_qs, urlparse
-import html, json, os, subprocess, threading, zipfile, time, csv, math, re, shutil
+import html, json, os, subprocess, threading, zipfile, time, csv, math, re, shutil, fcntl
 from datetime import datetime
 import xml.etree.ElementTree as ET
 from job_records import sync_job
@@ -488,6 +488,10 @@ class H(BaseHTTPRequestHandler):
     def do_GET(self):
         global active_job, active_ju
         path=urlparse(self.path).path
+        if path == "/health":
+            ready=any(t.name == "solocator-photo-watcher" and t.is_alive() for t in threading.enumerate())
+            b=json.dumps({"service":"devco-field","ready":ready,"pid":os.getpid(),"uptime":round(time.time()-APP_STARTED,1)}).encode()
+            self.send_response(200 if ready else 503); self.send_header("Content-Type","application/json"); self.send_header("Cache-Control","no-store"); self.send_header("Content-Length",str(len(b))); self.end_headers(); self.wfile.write(b); return
         if path in ("/static/leaflet.js","/static/leaflet.css"):
             f=ROOT/"SYSTEM"/"vendor"/path.rsplit("/",1)[-1]
             if f.exists():
@@ -622,6 +626,15 @@ class H(BaseHTTPRequestHandler):
         self.send(msg)
     def log_message(self,*a): pass
 if __name__=='__main__':
+    # Own the singleton and listening socket before starting any photo work.
+    # Concurrent old/new launchers must never create duplicate photo watchers.
+    instance_lock=(ROOT/".devco_app.lock").open("a")
+    try:
+        fcntl.flock(instance_lock,fcntl.LOCK_EX|fcntl.LOCK_NB)
+    except BlockingIOError:
+        raise SystemExit("DEVCO host is already running")
+    server=ThreadingHTTPServer(('127.0.0.1',8765),H)
     load_app_state()
     threading.Thread(target=photo_watcher,daemon=True,name="solocator-photo-watcher").start()
-    print('DEVCO Field app: http://127.0.0.1:8765',flush=True); ThreadingHTTPServer(('127.0.0.1',8765),H).serve_forever()
+    print('DEVCO Field app: http://127.0.0.1:8765',flush=True)
+    server.serve_forever()
