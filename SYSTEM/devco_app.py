@@ -353,10 +353,12 @@ def billing_page(msg=''):
     form='<form method="post" action="/finish"><div class="card"><h2>WORK PERFORMED</h2><p>Select every billing code actually performed. Quantity defaults to 1.</p>'+chips+'<textarea name="note" placeholder="Optional note - normal transfers need no note"></textarea><button class="go" name="close" value="FIBER TRANSFER COMPLETED">FINISH TRANSFER</button></div><div class="card"><h2>NO WORK NEEDED</h2><button class="no" name="close" value="TRANSFER ALREADY COMPLETED">Already completed - Trip Charge $40</button><button class="no" name="close" value="NO IDENTIFIABLE WINDSTREAM LINE ON POLE">No identifiable Windstream line - Trip Charge $40</button><button class="no" name="close" value="NO SERVICES ON POLE">No services on pole - Trip Charge $40</button><button class="no" name="close" value="ADSS">ADSS - Trip Charge $40</button><button class="no" name="close" value="PENDING">Pending / return needed</button></div></form>'
     css='<meta name="viewport" content="width=device-width,initial-scale=1"><style>*{box-sizing:border-box}body{background:#071019;color:white;font-family:system-ui;padding:15px;max-width:650px;margin:auto}.card{background:#10212c;border:1px solid #294653;border-radius:16px;padding:14px;margin:12px 0}label{display:grid;grid-template-columns:25px 1fr 35px 55px;align-items:center;padding:9px;border-bottom:1px solid #294653}input[type=number]{width:50px}button{width:100%;padding:15px;margin-top:8px;border:0;border-radius:10px;font-weight:900}.go{background:#20e66b}.no{background:#1a3442;color:white}textarea{width:100%;min-height:60px;margin-top:10px}a{color:#9fc5d9}.warn{border-color:#a44c15}</style>'
     from simple_ui import billing_draft_script
+    from voice_ui import voice_card, voice_script
     hidden='<input type="hidden" name="job" value="'+html.escape(active_job)+'"><input type="hidden" name="ju" value="'+html.escape(active_ju)+'">'
     form=form.replace('</textarea>',html.escape(read_note(folder))+'</textarea><p id="note-save-status" role="status">Notes save automatically</p>')
     form=form.replace('<form method="post" action="/finish">','<form method="post" action="/finish">'+hidden)
-    return '<!doctype html>'+css+top+warn+form+billing_draft_script(active_job,active_ju)
+    form=form.replace(hidden,hidden+voice_card(),1)
+    return '<!doctype html>'+css+top+warn+form+billing_draft_script(active_job,active_ju)+voice_script(active_job,active_ju,autostart=not bool(msg))
 
 @record_write
 def save_closeout(job,ju,close,codes,note):
@@ -519,6 +521,8 @@ class H(BaseHTTPRequestHandler):
                 self.reply(photo.read_bytes(),IMAGE_TYPES[photo.suffix.lower()]); return
             except ValueError as error:
                 self.reply(html.escape(str(error)),status=404); return
+        if path == "/static/voice-closeout.js":
+            self.reply((ROOT/"SYSTEM"/"voice_closeout.js").read_text(),"application/javascript"); return
         if path == "/health":
             ready=any(t.name == "solocator-photo-watcher" and t.is_alive() for t in threading.enumerate())
             b=json.dumps({"service":"devco-field","ready":ready,"pid":os.getpid(),"uptime":round(time.time()-APP_STARTED,1)}).encode()
@@ -593,6 +597,32 @@ class H(BaseHTTPRequestHandler):
         else: self.send()
     def do_POST(self):
         global active_job, field_proc, field_mode, active_ju
+        if self.path in ('/voice-note','/voice-close'):
+            from voice_workflow import save_voice_note,match_close
+            try:
+                n=int(self.headers.get('Content-Length','0'))
+                if n<=0 or n>30000: raise ValueError('Invalid voice request')
+                origin=self.headers.get('Origin')
+                expected_origin='http://127.0.0.1:'+str(self.server.server_port)
+                if origin and origin!=expected_origin: raise ValueError('Invalid request origin')
+                data=json.loads(self.rfile.read(n))
+                if not isinstance(data,dict) or not all(isinstance(data.get(k),str) for k in ('job','ju','transcript')):
+                    raise ValueError('Invalid voice request')
+                if (data['job'],data['ju'])!=(active_job,active_ju):
+                    raise Conflict('The active JU changed. Reopen closeout for the current JU.')
+                if self.path=='/voice-note':
+                    if not isinstance(data.get('expected_note'),str): raise ValueError('The current note is required')
+                    result=save_voice_note(globals(),data['job'],data['ju'],data['transcript'],data['expected_note'])
+                else:
+                    result=match_close(data['transcript'])
+                self.reply(json.dumps(result),'application/json'); return
+            except Conflict as error:
+                self.reply(json.dumps({'error':str(error)}),'application/json',409); return
+            except (ValueError,TypeError) as error:
+                self.reply(json.dumps({'error':str(error)}),'application/json',400); return
+            except Exception as error:
+                print('Voice closeout error:',error,flush=True)
+                self.reply(json.dumps({'error':'Could not save the voice note. Your transcript is kept on this screen.'}),'application/json',500); return
         if self.path=='/record-save':
             try:
                 n=int(self.headers.get('Content-Length','0'))

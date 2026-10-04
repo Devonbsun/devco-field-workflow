@@ -16,6 +16,7 @@ import android.os.Handler;
 
 public class MainActivity extends Activity {
     private WebView web;
+    private VoiceCloseout voice;
     private final Handler hostHandler = new Handler();
     private boolean foreground = false, probing = false, backendLoaded = false;
     private boolean commandPermissionRequested = false;
@@ -35,6 +36,7 @@ public class MainActivity extends Activity {
         web.setWebViewClient(new WebViewClient() {
             private boolean handle(Uri uri) {
                 if (uri == null) return false;
+                if (voice != null && voice.handle(uri)) return true;
                 String scheme = uri.getScheme();
                 String host = uri.getHost();
 
@@ -74,6 +76,16 @@ public class MainActivity extends Activity {
                 return false;
             }
 
+            @Override public void onPageStarted(WebView view, String url, android.graphics.Bitmap icon) {
+                if (voice != null) voice.cancel(false);
+            }
+
+            @Override public void onPageFinished(WebView view, String url) {
+                if (VoiceCloseout.isBilling(url) && url.equals(view.getUrl())) {
+                    view.loadUrl("javascript:window.devcoVoiceReady&&window.devcoVoiceReady()");
+                }
+            }
+
             @Override public boolean shouldOverrideUrlLoading(WebView view, String url) {
                 return handle(Uri.parse(url));
             }
@@ -102,6 +114,7 @@ public class MainActivity extends Activity {
         web.getSettings().setJavaScriptEnabled(true);
         web.getSettings().setDomStorageEnabled(true);
         web.getSettings().setGeolocationEnabled(true);
+        voice = new VoiceCloseout(this, web);
         setContentView(web);
         showConnecting();
     }
@@ -160,18 +173,21 @@ public class MainActivity extends Activity {
     @Override protected void onResume() {
         super.onResume();
         foreground = true;
+        if (voice != null) voice.onResume();
         startBackend();
         hostHandler.removeCallbacks(hostMonitor);
         hostHandler.post(hostMonitor);
     }
 
     @Override protected void onPause() {
+        if (voice != null) voice.onPause();
         foreground = false;
         hostHandler.removeCallbacks(hostMonitor);
         super.onPause();
     }
 
     @Override protected void onDestroy() {
+        if (voice != null) voice.destroy();
         foreground = false;
         hostHandler.removeCallbacksAndMessages(null);
         super.onDestroy();
@@ -257,6 +273,9 @@ public class MainActivity extends Activity {
 
     // Called by Android 6+ after the reflected runtime permission request.
     public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+        if (requestCode == VoiceCloseout.AUDIO_PERMISSION && voice != null) {
+            voice.permissionResult(grantResults); return;
+        }
         if (requestCode == 78) {
             if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 lastStartAttempt = 0;

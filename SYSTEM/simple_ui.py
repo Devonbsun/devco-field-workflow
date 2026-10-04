@@ -95,6 +95,8 @@ if(f){
   chain.catch(()=>{status.textContent='Note not saved to JU yet — retrying. Draft kept on this screen.';});
   return chain;
  }
+ window.devcoSaveBillingNote=save;
+ window.devcoAcceptSavedNote=text=>{clearTimeout(timer);note.value=text;lastSaved=text;stash();status.textContent='Note saved';};
  f.addEventListener('input',()=>{stash();clearTimeout(timer);status.textContent='Saving note…';timer=setTimeout(()=>save(),500);});
  note.addEventListener('blur',()=>save());
  document.addEventListener('visibilitychange',()=>{if(document.hidden)save();});

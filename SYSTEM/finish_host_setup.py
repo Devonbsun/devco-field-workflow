@@ -33,7 +33,7 @@ def install(apk, package, version=None):
         time.sleep(3)
     raise SystemExit("Installation still pending. Run devco-setup to continue.")
 
-install(BUILD / "recovery/DEVCO_Field_Host_Recovery.apk", "com.devco.field", "1.2-photos-ju-files")
+install(BUILD / "recovery/DEVCO_Field_Host_Recovery.apk", "com.devco.field", "1.3-voice-closeout")
 install(BUILD / "Termux_Boot.apk", "com.termux.boot")
 # Termux:Boot must be opened once so Android enables its boot receiver.
 subprocess.run(["am", "start", "--user", "0", "-n", "com.termux.boot/.BootActivity"], timeout=15, check=False)
