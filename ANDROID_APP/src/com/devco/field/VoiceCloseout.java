@@ -24,16 +24,19 @@ public final class VoiceCloseout {
     private final Activity activity;
     private final WebView web;
     private final Handler handler = new Handler();
+    private final VoiceAudioRouter audio;
     private TextToSpeech tts;
     private SpeechRecognizer recognizer;
     private boolean ttsReady, foreground, awaitingPermission, pendingPrompt, destroyed;
     private String session = "", stage = "";
     private int generation = 0;
+    private boolean preferPhone, recoveringPhone, recognitionReady, audioReady;
     public static final int AUDIO_PERMISSION = 79;
 
     public VoiceCloseout(Activity activity, WebView web) {
         this.activity = activity;
         this.web = web;
+        this.audio = new VoiceAudioRouter(activity);
     }
 
     public static boolean isBilling(String url) {
@@ -57,7 +60,9 @@ public final class VoiceCloseout {
         if (requestedSession == null || !requestedSession.matches("[A-Za-z0-9_-]{1,100}")) return true;
         if (!("notes".equals(requestedStage) || "close".equals(requestedStage)
                 || "retry-notes".equals(requestedStage) || "retry-close".equals(requestedStage))) return true;
+        boolean keepPhone = requestedSession.equals(session) && preferPhone;
         cancel(false);
+        preferPhone = keepPhone;
         session = requestedSession; stage = requestedStage; pendingPrompt = true;
         if (android.os.Build.VERSION.SDK_INT >= 23 && activity.getPackageManager().checkPermission(
                 Manifest.permission.RECORD_AUDIO, activity.getPackageName()) != PackageManager.PERMISSION_GRANTED) {
@@ -71,16 +76,34 @@ public final class VoiceCloseout {
                 fail("Microphone permission could not be requested. Use the manual controls.");
             }
         } else {
-            prepareTts();
+            prepareAudio();
         }
         return true;
     }
 
     private String prompt() {
+        if (recoveringPhone) return "Switching to the phone microphone. " +
+                (stage.endsWith("notes") ? "What are your notes?" : "What is the closing task?");
         if ("notes".equals(stage)) return "What are your notes?";
         if ("close".equals(stage)) return "What is the closing task?";
         if ("retry-notes".equals(stage)) return "I didn't catch that. What are your notes? You can also say no notes.";
         return "What is the closing task? Say ADSS, already completed, no services, no Windstream line, fiber transfer completed, or pending.";
+    }
+
+    private void prepareAudio() {
+        if (!valid(generation) || !pendingPrompt || awaitingPermission) return;
+        audioReady = false;
+        final int ticket = generation;
+        event("speaking", preferPhone ? "Connecting phone audio…" : "Connecting microphone…", "");
+        audio.prepare(preferPhone, new VoiceAudioRouter.Callback() {
+            @Override public void ready() {
+                if (!valid(ticket)) { audio.release(); return; }
+                audioReady = true;
+                if (android.os.Build.VERSION.SDK_INT >= 31 && !audio.isExternal()) preferPhone = true;
+                prepareTts();
+            }
+            @Override public void failed(String message) { if (valid(ticket)) fail(message); }
+        });
     }
 
     private void prepareTts() {
@@ -133,11 +156,12 @@ public final class VoiceCloseout {
     }
 
     private void speak() {
-        if (!valid(generation) || !pendingPrompt || !ttsReady) return;
+        if (!valid(generation) || !pendingPrompt || !ttsReady || !audioReady) return;
         pendingPrompt = false;
         event("speaking", prompt(), "");
         HashMap<String,String> params = new HashMap<String,String>();
         params.put(TextToSpeech.Engine.KEY_PARAM_UTTERANCE_ID, "devco-" + generation);
+        params.put(TextToSpeech.Engine.KEY_PARAM_STREAM, Integer.toString(audio.promptStream()));
         if (tts.speak(prompt(), TextToSpeech.QUEUE_FLUSH, params) == TextToSpeech.ERROR) {
             fail("Could not speak the prompt. Use the manual controls.");
         }
@@ -145,11 +169,14 @@ public final class VoiceCloseout {
 
     private void listen(final int ticket) {
         if (!valid(ticket)) return;
+        recognitionReady = false;
         try {
             recognizer = SpeechRecognizer.createSpeechRecognizer(activity);
             recognizer.setRecognitionListener(new RecognitionListener() {
-                @Override public void onReadyForSpeech(Bundle params) { if (valid(ticket)) event("listening", "Listening…", ""); }
-                @Override public void onBeginningOfSpeech() {}
+                @Override public void onReadyForSpeech(Bundle params) {
+                    if (valid(ticket)) { recognitionReady = true; event("listening", "Listening — " + audio.label(), ""); }
+                }
+                @Override public void onBeginningOfSpeech() { if (valid(ticket)) recognitionReady = true; }
                 @Override public void onRmsChanged(float value) {}
                 @Override public void onBufferReceived(byte[] buffer) {}
                 @Override public void onEndOfSpeech() { if (valid(ticket)) event("processing", "Processing speech…", ""); }
@@ -163,7 +190,8 @@ public final class VoiceCloseout {
                     handler.removeCallbacksAndMessages(null);
                     ArrayList<String> words = results.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
                     float[] confidence = results.getFloatArray(SpeechRecognizer.CONFIDENCE_SCORES);
-                    ++generation; releaseRecognizer();
+                    if ((words == null || words.isEmpty() || words.get(0).trim().isEmpty()) && retryPhone(ticket)) return;
+                    ++generation; releaseRecognizer(); audio.release();
                     if (words == null || words.isEmpty() || words.get(0).trim().isEmpty()) { event("retry", "No speech was heard.", ""); return; }
                     if (confidence != null && confidence.length > 0 && confidence[0] >= 0 && confidence[0] < 0.45f) {
                         event("retry", "Speech was unclear. Please repeat.", words.get(0)); return;
@@ -172,7 +200,10 @@ public final class VoiceCloseout {
                 }
                 @Override public void onError(int error) {
                     if (!valid(ticket)) return;
-                    handler.removeCallbacksAndMessages(null); ++generation; releaseRecognizer();
+                    if ((error == SpeechRecognizer.ERROR_NO_MATCH || error == SpeechRecognizer.ERROR_SPEECH_TIMEOUT
+                            || error == SpeechRecognizer.ERROR_AUDIO || error == SpeechRecognizer.ERROR_RECOGNIZER_BUSY)
+                            && retryPhone(ticket)) return;
+                    handler.removeCallbacksAndMessages(null); ++generation; releaseRecognizer(); audio.release();
                     if (error == SpeechRecognizer.ERROR_NO_MATCH || error == SpeechRecognizer.ERROR_SPEECH_TIMEOUT) {
                         event("retry", "No clear speech was heard.", "");
                     } else {
@@ -191,20 +222,40 @@ public final class VoiceCloseout {
             request.putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_MINIMUM_LENGTH_MILLIS, 5000L);
             recognizer.startListening(request);
             handler.postDelayed(new Runnable() { @Override public void run() {
+                if (valid(ticket) && !recognitionReady && !retryPhone(ticket)) {
+                    fail("The speech service did not open the microphone. Reopen Billing/Closeout or use the manual controls.");
+                }
+            }}, 8000);
+            handler.postDelayed(new Runnable() { @Override public void run() {
                 if (valid(ticket) && recognizer != null) recognizer.stopListening();
             }}, 90000);
             handler.postDelayed(new Runnable() { @Override public void run() {
-                if (valid(ticket)) fail("Speech timed out. Use the manual controls.");
+                if (valid(ticket) && !retryPhone(ticket)) fail("Speech timed out. Use the manual controls.");
             }}, 100000);
         } catch (Exception error) {
-            fail("Could not start listening. Use the manual controls.");
+            if (!retryPhone(ticket)) fail("Could not start listening. Use the manual controls.");
         }
+    }
+
+    private boolean retryPhone(int ticket) {
+        if (!valid(ticket) || preferPhone || !audio.isExternal()) return false;
+        ++generation;
+        handler.removeCallbacksAndMessages(null);
+        releaseRecognizer(); audio.release();
+        preferPhone = true; recoveringPhone = true; pendingPrompt = true; audioReady = false;
+        event("speaking", "Truck/headset microphone did not capture speech. Switching to the phone microphone…", "");
+        final int current = generation;
+        handler.postDelayed(new Runnable() { @Override public void run() {
+            if (valid(current)) prepareAudio();
+        }}, 500);
+        return true;
     }
 
     private void releaseRecognizer() {
         if (recognizer != null) {
             SpeechRecognizer old = recognizer; recognizer = null;
-            old.cancel(); old.destroy();
+            try { old.cancel(); } catch (Exception ignored) {}
+            try { old.destroy(); } catch (Exception ignored) {}
         }
     }
 
@@ -229,12 +280,13 @@ public final class VoiceCloseout {
         ++generation; pendingPrompt = false; awaitingPermission = false;
         handler.removeCallbacksAndMessages(null);
         if (tts != null) tts.stop();
-        releaseRecognizer(); session = ""; stage = "";
+        releaseRecognizer(); audio.release(); session = ""; stage = "";
+        preferPhone = recoveringPhone = audioReady = false;
     }
 
     public void onResume() {
         foreground = true;
-        if (pendingPrompt && !awaitingPermission) prepareTts();
+        if (pendingPrompt && !awaitingPermission) prepareAudio();
     }
 
     public void onPause() {
@@ -249,7 +301,7 @@ public final class VoiceCloseout {
         if (grantResults.length == 0 || grantResults[0] != PackageManager.PERMISSION_GRANTED) {
             fail("Microphone access was not granted. Use the manual controls."); return;
         }
-        if (foreground) prepareTts();
+        if (foreground) prepareAudio();
     }
 
     public void destroy() {
