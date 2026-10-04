@@ -39,7 +39,8 @@ public class AudioDeviceInfo { public int id,type;
     'android/media/AudioManager.java': '''package android.media;
 import java.util.*;
 public class AudioManager {
- public static final int MODE_NORMAL=0,MODE_IN_COMMUNICATION=3,STREAM_MUSIC=3,STREAM_VOICE_CALL=0;
+ public static final int MODE_NORMAL=0,MODE_RINGTONE=1,MODE_IN_CALL=2,MODE_IN_COMMUNICATION=3,STREAM_MUSIC=3,STREAM_VOICE_CALL=0;
+ public static final int AUDIOFOCUS_LOSS=-1,AUDIOFOCUS_LOSS_TRANSIENT=-2,AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK=-3;
  public static final int AUDIOFOCUS_GAIN_TRANSIENT=2,AUDIOFOCUS_REQUEST_GRANTED=1;
  public interface OnAudioFocusChangeListener { void onAudioFocusChange(int change); }
  public int mode,clears,abandons,modeCalls; public boolean mute,grant=true,rejectExternal,connectExternal=true,connectPhone=true,throwSelect;
@@ -125,6 +126,28 @@ public class VoiceAudioRouterTest {
 
   setup();a.devices.clear();router.prepare(false,result);check(result.failed==1&&a.mode==0&&a.abandons==1);
   pass("missing devices stops cleanly");
+
+  setup();router.prepare(false,result);Handler.advance(500);
+  check(router.beginRecognition());a.listener.onAudioFocusChange(-2);Handler.advance(0);
+  check(result.failed==0&&a.abandons==1&&a.mode==3&&a.clears==0&&router.isExternal());
+  router.release();check(a.clears==1&&a.mode==0&&a.abandons==1);
+  pass("recognizer focus handoff retains microphone and does not cancel closeout");
+
+  setup();router.prepare(false,result);Handler.advance(500);a.listener.onAudioFocusChange(-1);
+  check(router.beginRecognition());Handler.advance(0);check(result.failed==0&&a.mode==3);
+  pass("queued prompt focus loss after handoff cannot abort recognition");
+
+  setup();router.prepare(false,result);Handler.advance(500);a.listener.onAudioFocusChange(-3);Handler.advance(0);
+  check(result.failed==0&&result.ready==1&&a.clears==0);
+  pass("navigation ducking request does not cancel closeout");
+
+  setup();router.prepare(false,result);Handler.advance(500);check(router.beginRecognition());check(router.beginRecognition());
+  check(a.abandons==1);router.release();check(!router.beginRecognition());
+  pass("handoff is idempotent and unavailable after closeout ends");
+
+  setup();router.prepare(false,result);Handler.advance(500);a.mode=2;
+  check(!router.beginRecognition()&&result.failed==1&&a.clears==1);
+  pass("a real phone call blocks recognition during handoff");
   System.out.println(passed+" audio routing scenarios passed");
  }
 }''',

@@ -171,6 +171,7 @@ public final class VoiceCloseout {
         if (!valid(ticket)) return;
         recognitionReady = false;
         try {
+            if (!audio.beginRecognition()) return;
             recognizer = SpeechRecognizer.createSpeechRecognizer(activity);
             recognizer.setRecognitionListener(new RecognitionListener() {
                 @Override public void onReadyForSpeech(Bundle params) {

@@ -16,7 +16,7 @@ public final class VoiceAudioRouter {
     private final AudioManager audio;
     private final Handler handler = new Handler();
     private int generation;
-    private boolean focusHeld, modeOwned, routeOwned, external;
+    private boolean focusHeld, modeOwned, routeOwned, external, recognizing;
     private Object selected;
     private Callback callback;
     private AudioManager.OnAudioFocusChangeListener focusListener;
@@ -47,7 +47,11 @@ public final class VoiceAudioRouter {
             focusListener = new AudioManager.OnAudioFocusChangeListener() {
                 @Override public void onAudioFocusChange(final int change) {
                     handler.post(new Runnable() { @Override public void run() {
-                        if (ticket == generation && change < 0) {
+                        // Focus governs prompt playback. SpeechRecognizer runs in another
+                        // service and may acquire its own focus when we hand off capture.
+                        if (ticket == generation && focusHeld && !recognizing
+                                && (change == AudioManager.AUDIOFOCUS_LOSS
+                                || change == AudioManager.AUDIOFOCUS_LOSS_TRANSIENT)) {
                             fail("Voice paused because another app needs audio. Your notes are kept; reopen Billing/Closeout when ready.");
                         }
                     }});
@@ -144,6 +148,29 @@ public final class VoiceAudioRouter {
         if (target != null) target.failed(message);
     }
 
+    /** End prompt playback focus before starting the separate recognition service.
+     * Keep the selected communication route until the transcript, error or cancel.
+     */
+    public boolean beginRecognition() {
+        if (callback == null || audio == null) return false;
+        if (audio.getMode() == AudioManager.MODE_IN_CALL || audio.getMode() == AudioManager.MODE_RINGTONE) {
+            fail("A phone call is using audio. Finish it, then reopen Billing/Closeout.");
+            return false;
+        }
+        recognizing = true;
+        abandonPromptFocus();
+        return true;
+    }
+
+    private void abandonPromptFocus() {
+        boolean held = focusHeld;
+        // Clear first: a queued or synchronous loss belongs to the finished prompt.
+        focusHeld = false;
+        if (held && audio != null && focusListener != null) {
+            try { audio.abandonAudioFocus(focusListener); } catch (Exception ignored) {}
+        }
+    }
+
     public void release() {
         ++generation;
         handler.removeCallbacksAndMessages(null);
@@ -155,11 +182,9 @@ public final class VoiceAudioRouter {
             if (modeOwned) {
                 try { audio.setMode(AudioManager.MODE_NORMAL); } catch (Exception ignored) {}
             }
-            if (focusHeld && focusListener != null) {
-                try { audio.abandonAudioFocus(focusListener); } catch (Exception ignored) {}
-            }
+            abandonPromptFocus();
         }
-        routeOwned = modeOwned = focusHeld = external = false;
+        routeOwned = modeOwned = focusHeld = external = recognizing = false;
         selected = null; focusListener = null;
     }
 }
