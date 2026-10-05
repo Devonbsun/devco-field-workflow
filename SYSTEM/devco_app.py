@@ -6,6 +6,7 @@ from datetime import datetime
 import xml.etree.ElementTree as ET
 from job_records import sync_job as _sync_job
 from note_store import read_note, save_note
+from invoice_total import invoice_summary
 from record_editor import RECORD_LOCK, record_write, atomic_text, folder_for, photo_items, IMAGE_TYPES, records_page, edit_page, save_edit, Conflict
 
 @record_write
@@ -385,15 +386,29 @@ def map_page():
     js=jobs(); selected=active_job or (js[0] if js else "")
     points=ju_points(selected) if selected else []
     route=route40(selected) if selected else []
+    invoice=invoice_summary(JOBS/selected) if selected else {"total":"0", "work":"0", "trip":"0", "unpriced":{}}
     data=json.dumps(points).replace("</","<\\/")
     route_data=json.dumps(route).replace("</","<\\/")
     return f"""<!doctype html><html><head><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>DEVCO Map</title>
 <link rel="stylesheet" href="/static/leaflet.css">
 <style>html,body,#map{{height:100%;margin:0}}body{{font-family:system-ui}}#bar{{position:absolute;z-index:1000;top:10px;left:10px;right:10px;background:#071019ee;padding:12px;border-radius:16px;border:1px solid #314653;box-shadow:0 8px 24px #0008;color:white;display:flex;gap:8px;align-items:center}}#bar a{{color:white;text-decoration:none;background:#26384b;padding:10px 12px;border-radius:10px}}#bar span{{flex:1}}.nav,.activate{{display:inline-block;padding:9px 12px;background:#36c275;color:#07140d!important;border-radius:9px;text-decoration:none;font-weight:700;border:0;margin:3px}}.activate{{background:#168cff;color:white!important}}</style></head>
-<body><div id="bar"><a href="/">← Dashboard</a><span><b>{html.escape(selected)}</b> · {len(points)} JUs · <b>{len(route)}-STOP OPTIMIZED ROUTE</b> · <b>GPS/OFFLINE READY</b></span></div><div id="map"></div>
+<body><div id="bar"><a href="/">← Dashboard</a><span><b>{html.escape(selected)}</b> · {len(points)} JUs · <b>{len(route)}-STOP OPTIMIZED ROUTE</b> · <b>GPS/OFFLINE READY</b><br><b style="color:#4cdd92;font-size:22px">Invoice total: <span id="invoice-total">${float(invoice["total"]):,.2f}</span></b><br><small id="invoice-detail">Work ${float(invoice["work"]):,.2f} · Trip charges ${float(invoice["trip"]):,.2f}</small><small id="invoice-warning" style="display:block;color:#ffc26c">{"Unpriced codes excluded — review billing" if invoice["unpriced"] else ""}</small></span></div><div id="map"></div>
 <script src="/static/leaflet.js"></script><script>
 const pts={data}; const route={route_data}; const map=L.map('map');
+const invoiceJob={json.dumps(selected)};
+const money=new Intl.NumberFormat('en-US',{{style:'currency',currency:'USD'}});
+let invoiceBusy=false;
+async function refreshInvoice(){{
+ if(document.hidden||invoiceBusy)return;invoiceBusy=true;
+ try{{const r=await fetch('/invoice?job='+encodeURIComponent(invoiceJob),{{cache:'no-store'}});if(!r.ok)throw Error('Invoice unavailable');const x=await r.json();
+ document.getElementById('invoice-total').textContent=money.format(Number(x.total));
+ document.getElementById('invoice-detail').textContent='Work '+money.format(Number(x.work))+' · Trip charges '+money.format(Number(x.trip));
+ document.getElementById('invoice-warning').textContent=Object.keys(x.unpriced).length?'Unpriced codes excluded — review billing':'';
+ }}catch(e){{document.getElementById('invoice-warning').textContent='Total may be outdated — reconnecting…';}}finally{{invoiceBusy=false;}}
+}}
+setInterval(refreshInvoice,10000);document.addEventListener('visibilitychange',refreshInvoice);
+
 const tiles=L.tileLayer('https://{{s}}.tile.openstreetmap.org/{{z}}/{{x}}/{{y}}.png',{{maxZoom:20,attribution:'© OpenStreetMap'}});
 if(navigator.onLine) tiles.addTo(map);
 map.getContainer().style.background='#101b23';
@@ -531,6 +546,12 @@ class H(BaseHTTPRequestHandler):
             f=ROOT/"SYSTEM"/"vendor"/path.rsplit("/",1)[-1]
             if f.exists():
                 b=f.read_bytes(); self.send_response(200); self.send_header("Content-Type","application/javascript" if path.endswith(".js") else "text/css"); self.send_header("Content-Length",str(len(b))); self.end_headers(); self.wfile.write(b); return
+        if path == "/invoice":
+            q=parse_qs(urlparse(self.path).query)
+            job=q.get('job',[active_job or ''])[0]
+            if job not in jobs():
+                self.reply(json.dumps({'error':'Job not found'}),'application/json',status=404); return
+            self.reply(json.dumps(invoice_summary(JOBS/job)),'application/json'); return
         if path == "/status":
             folder=_ju_folder(active_job,active_ju) if active_job and active_ju else None
             photos=sum(p.is_file() for p in (folder/"photos").glob("*")) if folder else 0
