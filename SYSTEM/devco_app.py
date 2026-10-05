@@ -8,6 +8,7 @@ from job_records import sync_job as _sync_job
 from note_store import read_note, save_note
 from invoice_total import invoice_summary
 from record_editor import RECORD_LOCK, record_write, atomic_text, folder_for, photo_items, IMAGE_TYPES, records_page, edit_page, save_edit, Conflict
+from local_packet import packet_page, ju_page, sheet_page, spreadsheet_file
 
 @record_write
 def sync_job(job_dir):
@@ -393,7 +394,7 @@ def map_page():
 <title>DEVCO Map</title>
 <link rel="stylesheet" href="/static/leaflet.css">
 <style>html,body,#map{{height:100%;margin:0}}body{{font-family:system-ui}}#bar{{position:absolute;z-index:1000;top:10px;left:10px;right:10px;background:#071019ee;padding:12px;border-radius:16px;border:1px solid #314653;box-shadow:0 8px 24px #0008;color:white;display:flex;gap:8px;align-items:center}}#bar a{{color:white;text-decoration:none;background:#26384b;padding:10px 12px;border-radius:10px}}#bar span{{flex:1}}.nav,.activate{{display:inline-block;padding:9px 12px;background:#36c275;color:#07140d!important;border-radius:9px;text-decoration:none;font-weight:700;border:0;margin:3px}}.activate{{background:#168cff;color:white!important}}</style></head>
-<body><div id="bar"><a href="/">← Dashboard</a><span><b>{html.escape(selected)}</b> · {len(points)} JUs · <b>{len(route)}-STOP OPTIMIZED ROUTE</b> · <b>GPS/OFFLINE READY</b><br><b style="color:#4cdd92;font-size:22px">Invoice total: <span id="invoice-total">${float(invoice["total"]):,.2f}</span></b><br><small id="invoice-detail">Work ${float(invoice["work"]):,.2f} · Trip charges ${float(invoice["trip"]):,.2f}</small><small id="invoice-warning" style="display:block;color:#ffc26c">{"Unpriced codes excluded — review billing" if invoice["unpriced"] else ""}</small></span></div><div id="map"></div>
+<body><div id="bar"><div style="display:grid;gap:8px"><a href="/">← Field</a><a href="/packet?job={html.escape(selected)}" style="background:#4cdd92;color:#06180e;font-weight:700">Job packet</a></div><span><b>{html.escape(selected)}</b> · {len(points)} JUs · <b>{len(route)}-STOP OPTIMIZED ROUTE</b> · <b>GPS/OFFLINE READY</b><br><b style="color:#4cdd92;font-size:22px">Invoice total: <span id="invoice-total">${float(invoice["total"]):,.2f}</span></b><br><small id="invoice-detail">Work ${float(invoice["work"]):,.2f} · Trip charges ${float(invoice["trip"]):,.2f}</small><small id="invoice-warning" style="display:block;color:#ffc26c">{"Unpriced codes excluded — review billing" if invoice["unpriced"] else ""}</small></span></div><div id="map"></div>
 <script src="/static/leaflet.js"></script><script>
 const pts={data}; const route={route_data}; const map=L.map('map');
 const invoiceJob={json.dumps(selected)};
@@ -519,6 +520,28 @@ class H(BaseHTTPRequestHandler):
     def do_GET(self):
         global active_job, active_ju
         path=urlparse(self.path).path
+        if path in ('/packet', '/packet-ju', '/packet-sheet', '/packet-file'):
+            q=parse_qs(urlparse(self.path).query)
+            job=q.get('job',[active_job or ''])[0]
+            try:
+                if path == '/packet':
+                    self.reply(packet_page(globals(),job)); return
+                if path == '/packet-ju':
+                    self.reply(ju_page(globals(),job,q.get('ju',[''])[0])); return
+                relative=q.get('file',[''])[0]
+                if path == '/packet-sheet':
+                    self.reply(sheet_page(globals(),job,relative,q.get('sheet',[''])[0])); return
+                file=spreadsheet_file(globals(),job,relative)
+                with RECORD_LOCK:
+                    content=file.read_bytes()
+                self.send_response(200)
+                self.send_header('Content-Type','application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+                self.send_header('Content-Disposition','attachment; filename="'+file.name+'"')
+                self.send_header('Content-Length',str(len(content)))
+                self.send_header('Cache-Control','no-store')
+                self.end_headers(); self.wfile.write(content); return
+            except (ValueError, FileNotFoundError) as error:
+                self.reply(html.escape(str(error)),status=404); return
         if path in ('/records','/record','/photos','/photo'):
             q=parse_qs(urlparse(self.path).query)
             job=q.get('job',[active_job or ''])[0]; ju=q.get('ju',[''])[0]
