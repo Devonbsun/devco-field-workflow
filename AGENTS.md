@@ -19,8 +19,13 @@ update existing files and folders; remove old iterations only after verified bac
   GPS-verified and restored to four JUs on 2026-10-06; billing and notes were preserved.
 - Always check original Solocator GPS metadata when looking for JU/location photos.
   SYSTEM/gps_photo_audit.py checks standard and legacy sources and maintains
-  Needs_Review/GPS_Photo_Review.csv and GPS_Photos. Do not infer assignment for
-  closely spaced candidate JUs or infer completion from recovered photos.
+  Needs_Review/GPS_Photo_Review.csv and GPS_Photos. User clarification (2026-10-06):
+  connect reasonably nearby photos, including shots taken away from the pole; skip way-off photos.
+  Use GPS together with true compass direction, photo sequence and visible pole details.
+  The audit screens unfiled photos within 300 m; this is not a guaranteed identity radius.
+  Close competing JUs can be resolved by supporting evidence; retain review where visible
+  pole hardware conflicts. Record inferred associations and preserve originals.
+  Do not infer billing or completion from recovered photos.
 - Backup root: /storage/emulated/0/DEVCO/Backups.
   Pre-cleanup snapshot: Pole_Transfers_PreCleanup_2026-10-06.
   manifest.json preserves every original path; objects are SHA-256 verified.

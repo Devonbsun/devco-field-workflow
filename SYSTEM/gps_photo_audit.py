@@ -12,11 +12,20 @@ PHOTOS = Path("/storage/emulated/0/Pictures/Solocator")
 STATE = REPO / ".gps_photo_audit_state.json"
 CACHE = REPO / ".gps_photo_cache.json"
 IMAGE_TYPES = {".jpg", ".jpeg", ".png", ".heic", ".webp"}
+# User permits photos taken away from the pole; distance is a screening aid.
+NEARBY_METERS = 300
+AUDIT_VERSION = 2
 
 def distance(a, b):
     lat1, lon1, lat2, lon2 = map(math.radians, (a[0], a[1], b[0], b[1]))
     v = math.sin((lat2-lat1)/2)**2 + math.cos(lat1)*math.cos(lat2)*math.sin((lon2-lon1)/2)**2
     return 12742000 * math.asin(min(1, math.sqrt(v)))
+
+def bearing(a, b):
+    lat1, lat2 = map(math.radians, (a[0], b[0]))
+    delta = math.radians(b[1] - a[1])
+    return (math.degrees(math.atan2(math.sin(delta) * math.cos(lat2),
+            math.cos(lat1) * math.sin(lat2) - math.sin(lat1) * math.cos(lat2) * math.cos(delta))) + 360) % 360
 
 def current_sources():
     infos, photos = [], []
@@ -49,7 +58,7 @@ def refresh(force=False):
     stats = {str(p): [p.stat().st_size, p.stat().st_mtime_ns] for p in paths}
     fingerprint = hashlib.sha256(json.dumps(stats, sort_keys=True).encode()).hexdigest()
     old = json.loads(STATE.read_text()) if STATE.exists() else {}
-    if not force and old.get("fingerprint") == fingerprint:
+    if not force and old.get("version") == AUDIT_VERSION and old.get("fingerprint") == fingerprint:
         return old.get("summary", {})
     cache = json.loads(CACHE.read_text()) if CACHE.exists() else {}
     def digest(p):
@@ -63,17 +72,19 @@ def refresh(force=False):
     pending = []
     for p in originals:
         digest(p)
-        if "gps" not in cache[str(p)]:
+        if "gps" not in cache[str(p)] or "direction" not in cache[str(p)]:
             pending.append(p)
     if pending:
         result = subprocess.run(["exiftool", "-json", "-n", "-GPSLatitude", "-GPSLongitude",
-                                 "-GPSHPositioningError", "-DateTimeOriginal"] + [str(p) for p in pending],
+                                 "-GPSHPositioningError", "-DateTimeOriginal", "-GPSImgDirection", "-GPSImgDirectionRef"] + [str(p) for p in pending],
                                 capture_output=True, text=True, timeout=120, check=True)
         for meta in json.loads(result.stdout):
             data = cache[meta["SourceFile"]]
             data["gps"] = ([meta["GPSLatitude"], meta["GPSLongitude"]]
                            if meta.get("GPSLatitude") is not None and meta.get("GPSLongitude") is not None else None)
             data["taken"] = meta.get("DateTimeOriginal")
+            data["direction"] = meta.get("GPSImgDirection")
+            data["direction_ref"] = meta.get("GPSImgDirectionRef")
     atomic_text(CACHE, json.dumps(cache))
     review, counts = [], collections.Counter()
     for p in originals:
@@ -85,19 +96,26 @@ def refresh(force=False):
         gps = item.get("gps")
         nearest = sorted([dict(point, meters=round(distance(gps, (point["lat"], point["lon"])), 2))
                           for point in points], key=lambda v: v["meters"])[:2] if gps else []
-        if nearest and nearest[0]["meters"] > 5000:
-            counts["outside_current_job_area"] += 1
+        if nearest and nearest[0]["meters"] > NEARBY_METERS:
+            counts["outside_nearby_range"] += 1
             continue
         if not gps:
             reason = "GPS unavailable; confirm job and JU"
-        elif nearest[0]["meters"] > 120:
-            reason = "Outside the current JU matching range"
+        elif not nearest:
+            reason = "No current JU coordinates available"
         elif len(nearest) > 1 and nearest[1]["meters"] - nearest[0]["meters"] < 15:
-            reason = "Two nearby JU candidates; assignment needs confirmation"
+            reason = "Nearby competing JUs; compare direction, sequence and visible pole details"
         else:
-            reason = "Unfiled GPS match candidate; confirm before attachment"
+            reason = "Nearby unfiled candidate; connect using direction, sequence and pole evidence"
+        reason = old.get("review_notes", {}).get(item["sha256"], reason)
+        direction = item.get("direction")
+        if direction is not None and item.get("direction_ref") == "T":
+            for candidate in nearest:
+                candidate["bearing"] = round(bearing(gps, (candidate["lat"], candidate["lon"])), 1)
+                candidate["direction_difference"] = round(abs((direction-candidate["bearing"]+180)%360-180), 1)
         counts["needs_review"] += 1
-        review.append({"path": str(p), "sha256": item["sha256"], "gps": gps, "nearest": nearest, "reason": reason})
+        review.append({"path": str(p), "sha256": item["sha256"], "gps": gps, "nearest": nearest,
+                       "reason": reason, "direction": direction, "direction_ref": item.get("direction_ref")})
     output = DIRECTORY / "Needs_Review"
     output.mkdir(parents=True, exist_ok=True)
     managed = {}
@@ -118,7 +136,8 @@ def refresh(force=False):
     writer = csv.writer(text)
     writer.writerow(["Photo", "Review reason", "Nearest project", "Nearest JU", "Nearest address",
                      "Distance m", "Second project", "Second JU", "Second distance m",
-                     "Latitude", "Longitude", "Photo GPS map", "Original photo"])
+                     "Latitude", "Longitude", "Photo GPS map", "Original photo", "Camera direction degrees",
+                     "Direction reference", "Nearest bearing degrees", "Second bearing degrees"])
     for item in review:
         nearest = item["nearest"]
         a = nearest[0] if nearest else {}
@@ -128,13 +147,17 @@ def refresh(force=False):
                          a.get("address", ""), a.get("meters", ""), b.get("job", ""), b.get("ju", ""),
                          b.get("meters", ""), gps[0], gps[1],
                          "https://www.google.com/maps?q=" + str(gps[0]) + "," + str(gps[1]) if item["gps"] else "",
-                         item["path"]])
+                         item["path"], item.get("direction"), item.get("direction_ref"),
+                         a.get("bearing", ""), b.get("bearing", "")])
     for path, content in [
         (output / "GPS_Photo_Review.csv", text.getvalue()),
         (output / "README.txt",
          "GPS PHOTO REVIEW\n\n" + str(counts["needs_review"]) +
          " unfiled photos near the current jobs need review.\nOpen GPS_Photos for the originals and "
          "GPS_Photo_Review.csv for candidate JUs, distances and map links.\n"
+         "Photo GPS records where the camera stood, not necessarily the pole location.\n"
+         "Nearby screening range: 300 metres; use compass direction, photo sequence and visible pole details.\n"
+         "Farther unfiled originals are left in Solocator and omitted from this review.\n"
          "A nearby GPS position is evidence of location, not proof of completion.\n"
          "Confirmed photos belong in the authoritative JU folder; the same job packet then updates automatically.\n"),
         (output / "GPS_Photo_Audit.txt",
@@ -144,7 +167,8 @@ def refresh(force=False):
         if path.exists():
             remember(path)
         atomic_text(path, content)
-    result = {"fingerprint": fingerprint, "summary": dict(counts), "review_files": managed, "review": review}
+    result = {"version": AUDIT_VERSION, "fingerprint": fingerprint, "summary": dict(counts),
+              "review_files": managed, "review": review, "review_notes": old.get("review_notes", {})}
     atomic_text(STATE, json.dumps(result, indent=2))
     print("GPS photo audit", json.dumps(dict(counts)), flush=True)
     return dict(counts)
