@@ -324,6 +324,11 @@ def update_all(force=False):
 def watch():
     while True:
         try:
+            from gps_photo_audit import refresh as refresh_gps_audit
+            refresh_gps_audit()
+        except Exception as error:
+            print("GPS PHOTO AUDIT ERROR:", error, flush=True)
+        try:
             update_all()
         except Exception as error:
             print("PROJECT DIRECTORY UPDATE ERROR:", error, flush=True)

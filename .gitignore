@@ -28,3 +28,7 @@ BACKUPS/
 .devco_directory.lock
 BOSS_SEND_PACKETS/
 .packet-stage*/
+
+# Cached GPS metadata and audit state
+.gps_photo_cache.json
+.gps_photo_audit_state.json

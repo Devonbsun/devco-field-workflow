@@ -15,8 +15,12 @@ update existing files and folders; remove old iterations only after verified bac
 - Active 0200 source: JOBS/07400073460200/3_JU_FILES and source/route/workflow folders.
 - Authoritative 0212 legacy export: JOBS/07400073460212/JOB_PACKET_CURRENT plus its summary.
   Preserve legacy billing exactly. Do not infer completion from photos or billing codes.
-- Do not merge older 0212 records over the current packet. Eight unmatched older photos
-  were preserved in Pole_Transfers/Needs_Review with original-path provenance.
+- Do not merge older 0212 records over the current packet. Eight older photos were
+  GPS-verified and restored to four JUs on 2026-10-06; billing and notes were preserved.
+- Always check original Solocator GPS metadata when looking for JU/location photos.
+  SYSTEM/gps_photo_audit.py checks standard and legacy sources and maintains
+  Needs_Review/GPS_Photo_Review.csv and GPS_Photos. Do not infer assignment for
+  closely spaced candidate JUs or infer completion from recovered photos.
 - Backup root: /storage/emulated/0/DEVCO/Backups.
   Pre-cleanup snapshot: Pole_Transfers_PreCleanup_2026-10-06.
   manifest.json preserves every original path; objects are SHA-256 verified.
