@@ -1,7 +1,0 @@
-Field address: 3120 Delaware Ave
-Notes:
-1 bond, 1 transfer.
-
-Billing codes:
-PM2A x1
-WC1 x1

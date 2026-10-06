@@ -6,7 +6,7 @@ export SVDIR="$PREFIX/var/service"
 export PATH="$PREFIX/bin:$PATH"
 case "${1:-ensure}" in
   status)
-    sv status "$SVDIR/devco" "$SVDIR/devco-watchdog"
+    sv status "$SVDIR/devco" "$SVDIR/devco-watchdog" "$SVDIR/devco-files"
     exec python "$ROOT/SYSTEM/host_health.py"
     ;;
   ensure)
@@ -21,6 +21,7 @@ case "${1:-ensure}" in
     service-daemon start >/dev/null 2>&1 || true
     sv -w 15 up "$SVDIR/devco"
     sv -w 15 up "$SVDIR/devco-watchdog"
+    if [ -x "$SVDIR/devco-files/run" ]; then sv -w 15 up "$SVDIR/devco-files"; fi
     for attempt in {1..20}; do
       if python "$ROOT/SYSTEM/host_health.py" --quiet; then exit 0; fi
       sleep 1

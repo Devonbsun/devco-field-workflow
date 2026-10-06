@@ -1,8 +1,0 @@
-Address: 2014 Maple St
-Notes:
-Needs a double dead end.
-Surveyed — no way to identify fiber.
-Trip charge.
-
-Billing codes:
-WC1F x2

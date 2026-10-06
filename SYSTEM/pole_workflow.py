@@ -17,10 +17,8 @@ MASTER = (
 # How close a photo must be to a JU to automatically identify it.
 MAX_MATCH_METERS = 120
 
-MASTER_LOG = Path(
-    "/storage/emulated/0/Download/"
-    "Pole_Transfer_Production.csv"
-)
+MASTER_LOG = Path("/storage/emulated/0/DEVCO/Pole_Transfers/Jobs/07400073460212/Field_Production.csv")
+MASTER_LOG.parent.mkdir(parents=True, exist_ok=True)
 
 
 # Test billing codes. We'll replace these with the complete list later.

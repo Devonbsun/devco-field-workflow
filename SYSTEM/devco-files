@@ -1,0 +1,2 @@
+#!/data/data/com.termux/files/usr/bin/bash
+exec python "$HOME/DEVCO_FIELD/SYSTEM/project_directory.py" "$@"

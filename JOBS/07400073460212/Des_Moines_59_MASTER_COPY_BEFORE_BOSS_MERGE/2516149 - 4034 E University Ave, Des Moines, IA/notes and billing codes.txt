@@ -1,9 +1,0 @@
-Address: 4034 E University Ave
-Notes:
-1 bond and transfer; needs fiber tag.
-Surveyed — no way to identify fiber.
-Trip charge.
-
-Billing codes:
-PM2A x1
-WC1F x1

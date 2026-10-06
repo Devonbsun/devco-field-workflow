@@ -44,5 +44,6 @@ EOF
 service-daemon start >/dev/null 2>&1 || true
 sv-enable devco
 sv-enable devco-watchdog
+bash "$ROOT/SYSTEM/install_directory.sh"
 "$ROOT/SYSTEM/devco-host" ensure
 echo "DEVCO recovery enabled. Boot startup also requires Termux:Boot installed and opened once."

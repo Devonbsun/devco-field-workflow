@@ -22,3 +22,9 @@ ANDROID_APP/*.apk
 ANDROID_APP/*.idsig
 ANDROID_APP/*.keystore
 BACKUPS/
+
+# Stable project directory runtime state and superseded export staging
+.project_directory_state.json
+.devco_directory.lock
+BOSS_SEND_PACKETS/
+.packet-stage*/

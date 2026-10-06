@@ -1,7 +1,0 @@
-Address: 702 Euclid Ave
-Notes:
-Transfer is completed.
-Trip charge.
-
-Billing codes:
-WC1F x1
