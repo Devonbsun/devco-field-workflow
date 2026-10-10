@@ -339,10 +339,12 @@ def billing_prompt(pole, photos, input_fn=input):
     print("JOB CLOSE CODE")
     print("1) FIBER TRANSFER COMPLETED (2+ photos)")
     print("2) TRANSFER ALREADY COMPLETED (1+ photo)")
-    print("3) NO SERVICES ON POLE (1+ photo; Trip Charge $40)")
+    print("3) NO SERVICES ON POLE (1+ photo)")
     print("4) NO IDENTIFIABLE WINDSTREAM LINE ON POLE (1+ photo)")
-    print("5) PENDING (trip made; remains incomplete)")
-    print("6) ADSS (1+ photo; Trip Charge $40)")
+    print("5) PENDING (return needed; remains incomplete)")
+    print("6) ADSS (1+ photo)")
+    print("7) NO WINDSTREAM VIOLATION (1+ photo)")
+    print("8) UNABLE TO COMPLETE (1+ photo; closes JU; reason required)")
     print()
 
     close_choices = {
@@ -352,11 +354,13 @@ def billing_prompt(pole, photos, input_fn=input):
         "4": ("NO IDENTIFIABLE WINDSTREAM LINE ON POLE", 1),
         "5": ("PENDING", 1),
         "6": ("ADSS", 1),
+        "7": ("NO WINDSTREAM VIOLATION", 1),
+        "8": ("UNABLE TO COMPLETE", 1),
     }
     while True:
         status_choice = input_fn("Close code # [1]: ").strip() or "1"
         if status_choice not in close_choices:
-            print("Enter 1 through 6."); continue
+            print("Enter 1 through 8."); continue
         status, required_photos = close_choices[status_choice]
         if len(photos) < required_photos:
             print(f"Cannot close as {status}: requires at least {required_photos} photo(s); currently {len(photos)}.")
@@ -367,48 +371,41 @@ def billing_prompt(pole, photos, input_fn=input):
     print(f"STATUS: {status}")
     print()
 
-    auto_trip_statuses = {
-        "TRANSFER ALREADY COMPLETED",
-        "NO IDENTIFIABLE WINDSTREAM LINE ON POLE",
-        "NO SERVICES ON POLE",
-        "ADSS",
-    }
     selected = []
-    if status in auto_trip_statuses:
-        selected = [("TRIP CHARGE", "1")]
-        print("Billing automatically set: TRIP CHARGE x1 ($40.00)")
-        print("No manual billing code entry required.")
-    else:
-        while True:
+    while True:
 
-            choice = input_fn("Billing code #: ").strip()
+        choice = input_fn("Billing code #: ").strip()
 
-            if choice == "":
-                break
+        if choice == "":
+            break
 
-            if choice not in CODES:
-                print("Invalid selection.")
-                continue
+        if choice not in CODES:
+            print("Invalid selection.")
+            continue
 
-            code = CODES[choice]
+        code = CODES[choice]
 
-            qty = input_fn(
-                f"{code} quantity [1]: "
-            ).strip()
+        qty = input_fn(
+            f"{code} quantity [1]: "
+        ).strip()
 
-            if not qty:
-                qty = "1"
+        if not qty:
+            qty = "1"
 
-            selected.append((code, qty))
+        selected.append((code, qty))
 
-            print(f"  ADDED: {code} x{qty}")
+        print(f"  ADDED: {code} x{qty}")
 
-        print()
+    print()
+
 
 
     note = input_fn(
         "Notation / notes (optional): "
     ).strip()
+
+    while status in ("PENDING", "UNABLE TO COMPLETE") and not note:
+        note = input_fn("A reason is required: ").strip()
 
     master_matches = []
 

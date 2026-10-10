@@ -11,10 +11,10 @@ from note_store import read_note, save_note
 
 CLOSE_LABELS = {
     'FIBER TRANSFER COMPLETED': 'Fiber transfer completed',
-    'TRANSFER ALREADY COMPLETED': 'Transfer already completed · Trip Charge $40',
-    'NO IDENTIFIABLE WINDSTREAM LINE ON POLE': 'No identifiable Windstream line · Trip Charge $40',
-    'NO SERVICES ON POLE': 'No services on pole · Trip Charge $40',
-    'ADSS': 'ADSS · Trip Charge $40',
+    'TRANSFER ALREADY COMPLETED': 'Transfer already completed',
+    'NO IDENTIFIABLE WINDSTREAM LINE ON POLE': 'No identifiable Windstream line',
+    'NO SERVICES ON POLE': 'No services on pole',
+    'ADSS': 'ADSS',
     'NO WINDSTREAM VIOLATION': 'No Windstream violation',
     'UNABLE TO COMPLETE': 'Unable to complete · reason required',
     'PENDING': 'Pending / return needed',

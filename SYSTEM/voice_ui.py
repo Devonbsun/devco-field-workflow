@@ -15,7 +15,7 @@ def voice_card():
 <p id="voice-caution" style="color:#f1c580"></p><p>Edit the note in the Notes box below if needed.</p>
 <label for="voice-close" style="display:block">Closing task</label>
 <select id="voice-close" style="width:100%;padding:13px;font:16px system-ui;background:#071019;color:white;border:1px solid #456071">'''+options+'''</select>
-<p>Select work billing codes below if you completed a transfer.</p>
+<p>Select billing codes below. Choose Trip Charge ($40) when applicable.</p>
 <button id="voice-finalize" class="go" type="submit" name="close" value="" disabled>Confirm &amp; finalize JU</button>
 <details><summary>Original dictation</summary><p id="voice-original" style="white-space:pre-wrap"></p></details>
 </div></div>'''

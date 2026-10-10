@@ -18,7 +18,7 @@ def sync_job(job_dir):
 ROOT=Path.home()/"DEVCO_FIELD"; JOBS=ROOT/"JOBS"; STATE=ROOT/".devco_app_state.json"
 lock=threading.Lock(); field_proc=None; field_mode=False; active_job=None; active_ju=None; APP_STARTED=time.time()
 BILLING_CODES="WC1F PM2A PE1-3G BM80 BM80PF BM82 BM83(A) BM83(B) PE1-3 PE1-3G(JO) PF1-6A(JO) PM11 PM2 PM2(JO) PM2AF PM2C PM52 PM52(A) PM54(A) PM92 R1-5(A) R1-5(AF) WC1 WEC1 WEC1F WPE1 WPE1(JO) WSEA(A) XXCOE XXCW XXPF XXPM11 XXPM5 XXSEA(A) XXSTRAND".split()
-AUTO_TRIP={"TRANSFER ALREADY COMPLETED","NO IDENTIFIABLE WINDSTREAM LINE ON POLE","NO SERVICES ON POLE","ADSS"}
+BILLING_CODES.append('TRIP CHARGE')
 SOLOCATOR=Path("/storage/emulated/0/Pictures/Solocator")
 PHOTO_MATCH_METERS=120
 _photo_seen=set()
@@ -365,12 +365,12 @@ def billing_page(msg=''):
     if not active_job or not active_ju: return '<!doctype html><meta name="viewport" content="width=device-width,initial-scale=1"><body style="background:#071019;color:white;font-family:system-ui;padding:24px"><h2>Waiting for active JU</h2><p>Move near a pole for GPS auto-selection, or choose one from the map.</p><a style="color:#20e66b" href="/map">Open Job Map</a></body>'
     q=next((x for x in ju_points(active_job) if x['ju']==active_ju),{})
     folder=_ju_folder(active_job,active_ju); photos=list((folder/'photos').glob('*')) if folder and (folder/'photos').exists() else []
-    chips=''.join('<label><input type="checkbox" name="code" value="'+c+'"><b>'+c+'</b> Qty <input type="number" name="qty_'+c+'" value="1" min="1"></label>' for c in BILLING_CODES)
+    chips=''.join('<label><input type="checkbox" name="code" value="'+c+'"><b>'+('Trip Charge ($40)' if c=='TRIP CHARGE' else c)+'</b> Qty <input type="number" name="qty_'+c+'" value="1" min="1"></label>' for c in BILLING_CODES)
     top='<a href="/">&larr; Active JU</a><div class="card"><small>GPS ACTIVE JU</small><h1>'+html.escape(active_ju)+'</h1><div>'+html.escape(q.get('address',''))+'</div><p><b>'+html.escape(q.get('condition_code',''))+'</b><br>'+html.escape(q.get('condition_desc',''))+'</p><b>Photos attached: '+str(len(photos))+'</b></div>'
     from ju_media import upload_link
     top += upload_link(active_job,active_ju)
     warn=('<div class="card warn">'+html.escape(msg)+'</div>') if msg else ''
-    form='<form method="post" action="/finish"><div class="card"><h2>WORK PERFORMED</h2><p>Select every billing code actually performed. Quantity defaults to 1.</p>'+chips+'<textarea name="note" placeholder="Optional note - normal transfers need no note"></textarea><button class="go" name="close" value="FIBER TRANSFER COMPLETED">FINISH TRANSFER</button></div><div class="card"><h2>NO WORK NEEDED</h2><button class="no" name="close" value="TRANSFER ALREADY COMPLETED">Already completed - Trip Charge $40</button><button class="no" name="close" value="NO IDENTIFIABLE WINDSTREAM LINE ON POLE">No identifiable Windstream line - Trip Charge $40</button><button class="no" name="close" value="NO SERVICES ON POLE">No services on pole - Trip Charge $40</button><button class="no" name="close" value="ADSS">ADSS - Trip Charge $40</button><button class="no" name="close" value="NO WINDSTREAM VIOLATION">No Windstream violation</button><button class="no" name="close" value="UNABLE TO COMPLETE">Unable to complete · reason required</button><button class="no" name="close" value="PENDING">Pending / return needed</button></div></form>'
+    form='<form method="post" action="/finish"><div class="card"><h2>BILLING CODES</h2><p>Select the codes to bill. Trip Charge ($40) applies only when selected. Quantity defaults to 1.</p>'+chips+'<textarea name="note" placeholder="Optional note - normal transfers need no note"></textarea></div><div class="card"><h2>CLOSING CODES</h2><button class="go" name="close" value="FIBER TRANSFER COMPLETED">FINISH TRANSFER</button><button class="no" name="close" value="TRANSFER ALREADY COMPLETED">Already completed</button><button class="no" name="close" value="NO IDENTIFIABLE WINDSTREAM LINE ON POLE">No identifiable Windstream line</button><button class="no" name="close" value="NO SERVICES ON POLE">No services on pole</button><button class="no" name="close" value="ADSS">ADSS</button><button class="no" name="close" value="NO WINDSTREAM VIOLATION">No Windstream violation</button><button class="no" name="close" value="UNABLE TO COMPLETE">Unable to complete · reason required</button><button class="no" name="close" value="PENDING">Pending / return needed</button></div></form>'
     css='<meta name="viewport" content="width=device-width,initial-scale=1"><style>*{box-sizing:border-box}body{background:#071019;color:white;font-family:system-ui;padding:15px;max-width:650px;margin:auto}.card{background:#10212c;border:1px solid #294653;border-radius:16px;padding:14px;margin:12px 0}label{display:grid;grid-template-columns:25px 1fr 35px 55px;align-items:center;padding:9px;border-bottom:1px solid #294653}input[type=number]{width:50px}button{width:100%;padding:15px;margin-top:8px;border:0;border-radius:10px;font-weight:900}.go{background:#20e66b}.no{background:#1a3442;color:white}textarea{width:100%;min-height:60px;margin-top:10px}a{color:#9fc5d9}.warn{border-color:#a44c15}</style>'
     from simple_ui import billing_draft_script
     from voice_ui import voice_card, voice_script
@@ -391,10 +391,9 @@ def save_closeout(job,ju,close,codes,note):
     need=2 if close=='FIBER TRANSFER COMPLETED' else 1
     if len(photos)<need:return False,f'Need {need} photo(s); currently {len(photos)}.'
     if close=='FIBER TRANSFER COMPLETED' and not codes:return False,'Select at least one billing code for work performed.'
-    pending=close in ('PENDING','UNABLE TO COMPLETE')
-    if pending and not note.strip():return False,close.title()+' requires a reason/note.'
-    if close in AUTO_TRIP:codes=[('TRIP CHARGE','1')]
-    elif pending or close=='NO WINDSTREAM VIOLATION':codes=[]
+    pending=close=='PENDING'
+    if close in ('PENDING','UNABLE TO COMPLETE') and not note.strip():return False,close.title()+' requires a reason/note.'
+    # Billing comes only from the codes selected by the user, for every close code.
     # One authoritative current closeout per JU; prevents accidental duplicate submissions.
     record=folder/'BILLING_AND_NOTES.txt'
     from job_records import _parse_record, CLOSE_RULES

@@ -104,7 +104,7 @@ class SimpleFlow(unittest.TestCase):
         from job_records import _parse_record
         rec=_parse_record(self.folder/"BILLING_AND_NOTES.txt")
         self.assertEqual(rec["notes"],[note])
-        self.assertEqual(rec["billing"],[("TRIP CHARGE","1")])
+        self.assertEqual(rec["billing"],[])
         from openpyxl import load_workbook
         wb=load_workbook(app.JOBS/"TEST"/"1_JOB_WORKFLOW"/"TEST_MASTER.xlsx")
         self.assertEqual(wb.active.cell(2,10).value,note);wb.close()
@@ -119,7 +119,7 @@ class SimpleFlow(unittest.TestCase):
         self.assertEqual(read_note(self.folder),"Keep this note")
         self.assertFalse((self.folder/"BILLING_AND_NOTES.txt").exists())
 
-    def test_adss_and_no_services_apply_one_trip_charge(self):
+    def test_adss_and_no_services_keep_selected_billing(self):
         from job_records import _parse_record, collect
         (self.folder/"photos"/"two.jpg").unlink()
         for close in ("ADSS", "NO SERVICES ON POLE"):
@@ -128,11 +128,11 @@ class SimpleFlow(unittest.TestCase):
             urllib.request.urlopen(self.base+"/finish",data=data).read()
             record=_parse_record(self.folder/"BILLING_AND_NOTES.txt")
             self.assertEqual(record["status"],close)
-            self.assertEqual(record["billing"],[("TRIP CHARGE","1")])
+            self.assertEqual(record["billing"],[("WC1","9")])
             self.assertEqual(record["notes"],["Survey documented"])
             row=next(r for r in collect(app.JOBS/"TEST") if r["JU"]=="101")
             self.assertEqual(row["State"],"COMPLETE")
-            self.assertEqual(row["Billing Codes"],"TRIP CHARGE x1")
+            self.assertEqual(row["Billing Codes"],"WC1 x9")
         (self.folder/"photos"/"one.jpg").unlink()
         for close in ("ADSS", "NO SERVICES ON POLE"):
             self.assertFalse(app.save_closeout("TEST","101",close,[],"")[0])

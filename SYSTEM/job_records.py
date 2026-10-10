@@ -10,7 +10,7 @@ CLOSE_RULES={
  "ADSS":(1,"COMPLETE"),
  "NO IDENTIFIABLE WINDSTREAM LINE ON POLE":(1,"COMPLETE"),
  "NO WINDSTREAM VIOLATION":(1,"COMPLETE"),
- "UNABLE TO COMPLETE":(1,"PENDING"),
+ "UNABLE TO COMPLETE":(1,"COMPLETE"),
  "PENDING":(1,"PENDING"),
 }
 HEADERS=["JU","Address","Latitude","Longitude","Navigate","State","Close Code","Photo Count","Billing Codes","Notes","Photo Files","Drive Time","Work Time","Completed At"]

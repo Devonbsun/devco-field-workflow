@@ -87,10 +87,10 @@ class MediaCloseout(unittest.TestCase):
         self.upload()
         self.assertTrue(app.save_closeout('TEST','101','NO WINDSTREAM VIOLATION',[('WC1','1')],'No violation found')[0])
         rec=_parse_record(self.folder/'BILLING_AND_NOTES.txt')
-        self.assertEqual(app._ju_state(self.folder),'COMPLETE');self.assertTrue(rec['completed_at']);self.assertEqual(rec['billing'],[])
+        self.assertEqual(app._ju_state(self.folder),'COMPLETE');self.assertTrue(rec['completed_at']);self.assertEqual(rec['billing'],[('WC1','1')])
         self.assertFalse(app.save_closeout('TEST','101','UNABLE TO COMPLETE',[],'')[0])
         self.assertTrue(app.save_closeout('TEST','101','UNABLE TO COMPLETE',[('WC1','1')],'Access blocked')[0])
-        row=collect(app.JOBS/'TEST')[0];self.assertEqual(row['State'],'PENDING');self.assertEqual(row['Completed At'],'');self.assertEqual(row['Billing Codes'],'')
+        row=collect(app.JOBS/'TEST')[0];self.assertEqual(row['State'],'COMPLETE');self.assertTrue(row['Completed At']);self.assertEqual(row['Billing Codes'],'WC1 x1')
         self.assertEqual(row['Close Code'],'UNABLE TO COMPLETE');self.assertEqual(row['Notes'],'Access blocked')
     def test_manual_voice_and_upload_pages(self):
         billing=self.get('/billing').read().decode()

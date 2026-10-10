@@ -81,7 +81,7 @@ def fingerprint(job):
                          for p in source_files(job)]).encode()).hexdigest()
 
 def billing_workbook(source, rows, target):
-    from invoice_total import RATES, TRIP_STATUSES, invoice_summary
+    from invoice_total import RATES, invoice_summary
     from job_records import _parse_record
     wb = Workbook()
     ws = wb.active
@@ -95,8 +95,6 @@ def billing_workbook(source, rows, target):
         if folder is None:
             raise RuntimeError("Billing JU folder missing")
         codes = list(_parse_record(folder / "BILLING_AND_NOTES.txt")["billing"])
-        if row["Close Code"] in TRIP_STATUSES and not any(c.strip() == "TRIP CHARGE" for c, q in codes):
-            codes.append(("TRIP CHARGE", "1"))
         if not codes:
             codes = [("MISSING BILLING CODE", "0")]
         for code, quantity in codes:
