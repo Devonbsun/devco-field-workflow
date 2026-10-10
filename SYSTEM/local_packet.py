@@ -6,7 +6,7 @@ from urllib.parse import urlencode
 
 from job_records import _parse_info, _parse_record
 from note_store import read_note
-from record_editor import RECORD_LOCK, folder_for, photo_items
+from record_editor import RECORD_LOCK, folder_for, photo_items, photo_panel, photo_script, PHOTO_STYLE
 
 
 def esc(value):
@@ -112,14 +112,11 @@ def ju_page(app, job, ju):
             body += '<a class="button" href="' + esc(url('/navigate', job=job, ju=ju)) + '">Navigate to pole</a>'
     except ValueError:
         pass
-    body += '</div><h2>Photos (' + str(len(photos)) + ')</h2><div class="gallery">'
-    for p in photos:
-        body += '<figure><a href="' + esc(p['url']) + '"><img loading="lazy" decoding="async" src="' + esc(p['url']) + '" alt="JU ' + esc(ju) + ': ' + esc(p['name']) + '"></a><figcaption>' + esc(p['name']) + '</figcaption></figure>'
-    body += '</div>' + ('<p class="muted">No photos saved in this JU folder.</p>' if not photos else '<p class="muted">Tap a photo to open the full-size original.</p>')
+    body += '</div><style>'+PHOTO_STYLE+'</style><h2>Photos &amp; videos</h2>'+photo_panel(job,ju,photos,camera=False)
     body += '<details><summary>Original pole details</summary><pre>' + esc(raw) + '</pre></details>'
     if saved:
         body += '<details><summary>Saved billing and notes file</summary><pre>' + esc(saved) + '</pre></details>'
-    return shell('JU ' + ju, body, job)
+    return shell('JU ' + ju, body, job).replace('</body>',photo_script(job,ju)+'</body>')
 
 
 def sheet_page(app, job, relative, sheet_name=''):

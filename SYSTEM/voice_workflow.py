@@ -15,6 +15,8 @@ CLOSE_LABELS = {
     'NO IDENTIFIABLE WINDSTREAM LINE ON POLE': 'No identifiable Windstream line · Trip Charge $40',
     'NO SERVICES ON POLE': 'No services on pole · Trip Charge $40',
     'ADSS': 'ADSS · Trip Charge $40',
+    'NO WINDSTREAM VIOLATION': 'No Windstream violation',
+    'UNABLE TO COMPLETE': 'Unable to complete · reason required',
     'PENDING': 'Pending / return needed',
 }
 CORRECTION = re.compile(r'\b(?:sorry\s*[,;:]?\s*(?:i\s+mean\s*)?|i\s+mean\s+|correction\s*[,;:]?\s*|scratch\s+that\s*[,;:]?\s*|let\s+me\s+correct\s+that\s*[,;:]?\s*)', re.I)
@@ -129,7 +131,9 @@ def match_close(transcript):
     candidates = set()
     if re.search(r'\badss\b', text): candidates.add('ADSS')
     if re.search(r'\balready\s+(?:been\s+)?(?:complete[ds]?|transferred|done)\b', text): candidates.add('TRANSFER ALREADY COMPLETED')
-    if re.search(r'\bno\s+(?:identifiable\s+)?windstream(?:\s+lines?)?\b', text): candidates.add('NO IDENTIFIABLE WINDSTREAM LINE ON POLE')
+    if re.search(r'\bno\s+windstream\s+violations?\b', text): candidates.add('NO WINDSTREAM VIOLATION')
+    if re.search(r'\bno\s+(?:identifiable\s+)?windstream(?:\s+lines?)?\b', text) and 'NO WINDSTREAM VIOLATION' not in candidates: candidates.add('NO IDENTIFIABLE WINDSTREAM LINE ON POLE')
+    if re.search(r'\bunable\s+to\s+complete\b', text): candidates.add('UNABLE TO COMPLETE')
     if re.search(r'\bno\s+services?\b', text): candidates.add('NO SERVICES ON POLE')
     if re.search(r'\bpending\b|\breturn\s+(?:needed|required|visit)\b|\bneed\s+to\s+return\b', text): candidates.add('PENDING')
     if 'TRANSFER ALREADY COMPLETED' not in candidates and re.search(r'\b(?:fiber\s+)?transfer\s+(?:is\s+|was\s+)?(?:completed?|done|finished)\b|\b(?:we|i)\s+(?:completed|finished)\s+(?:the\s+)?transfer\b', text):

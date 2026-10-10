@@ -16,7 +16,8 @@ DIRECTORY = Path("/storage/emulated/0/DEVCO/Pole_Transfers")
 BACKUPS = DIRECTORY.parent / "Backups"
 STATE = REPO / ".project_directory_state.json"
 PART_LIMIT = 95_000_000
-IMAGE_TYPES = {".jpg", ".jpeg", ".png", ".heic", ".webp"}
+IMAGE_TYPES = {".jpg", ".jpeg", ".png", ".heic", ".heif", ".webp", ".gif"}
+VIDEO_TYPES = {".mp4", ".mov", ".m4v", ".webm", ".3gp"}
 
 def sha(path):
     h = hashlib.sha256()
@@ -204,7 +205,7 @@ def build_mapping(job, stage):
             rel = p.relative_to(folder)
             if any(x in rel.parts for x in ("VOICE_HISTORY", "RECORD_HISTORY")):
                 continue
-            allowed = p.suffix.lower() in IMAGE_TYPES or p.name in (
+            allowed = p.suffix.lower() in (IMAGE_TYPES | VIDEO_TYPES) or p.name in (
                 "transfer_info.txt", "BILLING_AND_NOTES.txt", "notes and billing codes.txt")
             if allowed:
                 mapping[buckets[ju] + "/" + folder.name + "/" + rel.as_posix()] = p

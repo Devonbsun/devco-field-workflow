@@ -19,7 +19,7 @@ def page(app, msg=""):
         active = f"""<section><small>CURRENT POLE</small><h1>JU {esc(ju)}</h1><p>{esc(pole["address"])}</p>
         <p><strong>{esc(pole.get("condition_code",""))}</strong><br>{esc(pole.get("condition_desc",""))}</p>
         <div class="row"><a href="{esc(ju_url("/navigate",job,ju))}">Navigate</a><a href="{esc(ju_url("/hone",job,ju))}">Find pole</a><a href="/map">Map</a></div>
-        <h2>1. Take photos</h2><p><b id="photos">{photos}</b> photos filed under this JU</p>
+        <h2>1. Take photos</h2><p class="muted">Or upload existing photos and videos.</p><p><b id="photos">{photos}</b> photos filed under this JU</p>
         {gallery}
         <h2>2. Notes &amp; codes</h2><a class="primary" href="/billing">Review &amp; finish this JU</a>
         <p class="muted">After saving, the next unfinished JU appears here. Tap Navigate when ready.</p></section>"""
@@ -45,7 +45,7 @@ if(saved){try{localStorage.removeItem("devco-closeout:"+saved);}catch(e){}histor
 let locating=false,lastLocate=0;
 if(navigator.geolocation){
  navigator.geolocation.watchPosition(async p=>{
-  if(document.hidden||locating||Date.now()-lastLocate<5000)return;
+  if(window.devcoMediaUploading||document.hidden||locating||Date.now()-lastLocate<5000)return;
   locating=true;lastLocate=Date.now();
   try{
    const q=new URLSearchParams({auto:'1',lat:p.coords.latitude,lon:p.coords.longitude,accuracy:p.coords.accuracy});

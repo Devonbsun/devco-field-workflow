@@ -367,8 +367,10 @@ def billing_page(msg=''):
     folder=_ju_folder(active_job,active_ju); photos=list((folder/'photos').glob('*')) if folder and (folder/'photos').exists() else []
     chips=''.join('<label><input type="checkbox" name="code" value="'+c+'"><b>'+c+'</b> Qty <input type="number" name="qty_'+c+'" value="1" min="1"></label>' for c in BILLING_CODES)
     top='<a href="/">&larr; Active JU</a><div class="card"><small>GPS ACTIVE JU</small><h1>'+html.escape(active_ju)+'</h1><div>'+html.escape(q.get('address',''))+'</div><p><b>'+html.escape(q.get('condition_code',''))+'</b><br>'+html.escape(q.get('condition_desc',''))+'</p><b>Photos attached: '+str(len(photos))+'</b></div>'
+    from ju_media import upload_link
+    top += upload_link(active_job,active_ju)
     warn=('<div class="card warn">'+html.escape(msg)+'</div>') if msg else ''
-    form='<form method="post" action="/finish"><div class="card"><h2>WORK PERFORMED</h2><p>Select every billing code actually performed. Quantity defaults to 1.</p>'+chips+'<textarea name="note" placeholder="Optional note - normal transfers need no note"></textarea><button class="go" name="close" value="FIBER TRANSFER COMPLETED">FINISH TRANSFER</button></div><div class="card"><h2>NO WORK NEEDED</h2><button class="no" name="close" value="TRANSFER ALREADY COMPLETED">Already completed - Trip Charge $40</button><button class="no" name="close" value="NO IDENTIFIABLE WINDSTREAM LINE ON POLE">No identifiable Windstream line - Trip Charge $40</button><button class="no" name="close" value="NO SERVICES ON POLE">No services on pole - Trip Charge $40</button><button class="no" name="close" value="ADSS">ADSS - Trip Charge $40</button><button class="no" name="close" value="PENDING">Pending / return needed</button></div></form>'
+    form='<form method="post" action="/finish"><div class="card"><h2>WORK PERFORMED</h2><p>Select every billing code actually performed. Quantity defaults to 1.</p>'+chips+'<textarea name="note" placeholder="Optional note - normal transfers need no note"></textarea><button class="go" name="close" value="FIBER TRANSFER COMPLETED">FINISH TRANSFER</button></div><div class="card"><h2>NO WORK NEEDED</h2><button class="no" name="close" value="TRANSFER ALREADY COMPLETED">Already completed - Trip Charge $40</button><button class="no" name="close" value="NO IDENTIFIABLE WINDSTREAM LINE ON POLE">No identifiable Windstream line - Trip Charge $40</button><button class="no" name="close" value="NO SERVICES ON POLE">No services on pole - Trip Charge $40</button><button class="no" name="close" value="ADSS">ADSS - Trip Charge $40</button><button class="no" name="close" value="NO WINDSTREAM VIOLATION">No Windstream violation</button><button class="no" name="close" value="UNABLE TO COMPLETE">Unable to complete · reason required</button><button class="no" name="close" value="PENDING">Pending / return needed</button></div></form>'
     css='<meta name="viewport" content="width=device-width,initial-scale=1"><style>*{box-sizing:border-box}body{background:#071019;color:white;font-family:system-ui;padding:15px;max-width:650px;margin:auto}.card{background:#10212c;border:1px solid #294653;border-radius:16px;padding:14px;margin:12px 0}label{display:grid;grid-template-columns:25px 1fr 35px 55px;align-items:center;padding:9px;border-bottom:1px solid #294653}input[type=number]{width:50px}button{width:100%;padding:15px;margin-top:8px;border:0;border-radius:10px;font-weight:900}.go{background:#20e66b}.no{background:#1a3442;color:white}textarea{width:100%;min-height:60px;margin-top:10px}a{color:#9fc5d9}.warn{border-color:#a44c15}</style>'
     from simple_ui import billing_draft_script
     from voice_ui import voice_card, voice_script
@@ -380,7 +382,8 @@ def billing_page(msg=''):
 
 @record_write
 def save_closeout(job,ju,close,codes,note):
-    allowed={'FIBER TRANSFER COMPLETED','TRANSFER ALREADY COMPLETED','NO SERVICES ON POLE','NO IDENTIFIABLE WINDSTREAM LINE ON POLE','ADSS','PENDING'}
+    from job_records import CLOSE_RULES
+    allowed=set(CLOSE_RULES)
     if close not in allowed:return False,'Invalid close code.'
     folder=_ju_folder(job,ju)
     if not folder:return False,'JU not found'
@@ -388,9 +391,10 @@ def save_closeout(job,ju,close,codes,note):
     need=2 if close=='FIBER TRANSFER COMPLETED' else 1
     if len(photos)<need:return False,f'Need {need} photo(s); currently {len(photos)}.'
     if close=='FIBER TRANSFER COMPLETED' and not codes:return False,'Select at least one billing code for work performed.'
-    if close=='PENDING' and not note.strip():return False,'Pending requires a reason/note.'
+    pending=close in ('PENDING','UNABLE TO COMPLETE')
+    if pending and not note.strip():return False,close.title()+' requires a reason/note.'
     if close in AUTO_TRIP:codes=[('TRIP CHARGE','1')]
-    elif close=='PENDING':codes=[]
+    elif pending or close=='NO WINDSTREAM VIOLATION':codes=[]
     # One authoritative current closeout per JU; prevents accidental duplicate submissions.
     record=folder/'BILLING_AND_NOTES.txt'
     from job_records import _parse_record, CLOSE_RULES
@@ -398,9 +402,9 @@ def save_closeout(job,ju,close,codes,note):
     previous = _parse_record(record)
     was_complete = CLOSE_RULES.get(previous['status'], (None, None))[1] == 'COMPLETE'
     completed = previous.get('completed_at', '') if was_complete else ''
-    if close != 'PENDING' and not was_complete:
+    if not pending and not was_complete:
         completed = datetime.now(CENTRAL).isoformat(timespec='seconds')
-    if close == 'PENDING': completed = ''
+    if pending: completed = ''
     with record.open('w') as f:
         if completed: f.write('COMPLETED_AT: ' + completed + '\n')
         f.write('\n'+'='*50+f'\nJU: {ju}\n\nPHOTOS:\n'+''.join(f'- {x.name}\n' for x in photos)+f'\nSTATUS: {close}\n\nBILLING:\n')
@@ -555,6 +559,8 @@ class H(BaseHTTPRequestHandler):
     def do_GET(self):
         global active_job, active_ju
         path=urlparse(self.path).path
+        from ju_media import handle_get as media_get
+        if media_get(self,globals(),path): return
         from tracking_http import get as tracking_get
         if tracking_get(self,globals(),path): return
         if path in ('/packet', '/packet-ju', '/packet-sheet', '/packet-file'):
@@ -696,6 +702,8 @@ class H(BaseHTTPRequestHandler):
         else: self.send()
     def do_POST(self):
         global active_job, field_proc, field_mode, active_ju
+        from ju_media import handle_post as media_post
+        if media_post(self,globals()): return
         from tracking_http import post as tracking_post
         if tracking_post(self,globals()): return
         if self.path in ('/voice-note','/voice-close'):
