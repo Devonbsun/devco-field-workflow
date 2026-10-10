@@ -9,6 +9,8 @@ from note_store import read_note, save_note
 from invoice_total import invoice_summary
 from record_editor import RECORD_LOCK, record_write, atomic_text, folder_for, photo_items, IMAGE_TYPES, records_page, edit_page, save_edit, Conflict
 from local_packet import packet_page, ju_page, sheet_page, spreadsheet_file
+from navigation import target as navigation_target, maps_url, ju_url, coordinate
+from record_editor import record_data
 
 @record_write
 def sync_job(job_dir):
@@ -201,7 +203,7 @@ def completed(job):
     root=JOBS/job/"3_JU_FILES"
     return sum(_ju_state(p.parent)=="COMPLETE" for p in root.glob("*/transfer_info.txt"))
 
-def ju_points(job):
+def ju_points(job, include_record=False):
     out=[]
     root=JOBS/job/"3_JU_FILES"
     for info in root.glob("*/transfer_info.txt"):
@@ -210,7 +212,8 @@ def ju_points(job):
             for line in info.read_text(errors="ignore").splitlines():
                 if ":" in line:
                     k,v=line.split(":",1); vals[k.strip()]=v.strip()
-            lat=float(vals.get("Latitude","")); lon=float(vals.get("Longitude",""))
+            lat=float(coordinate(vals.get("Latitude",""),90)); lon=float(coordinate(vals.get("Longitude",""),180))
+            if lat == 0 and lon == 0: continue
             ju=vals.get("JU Record", info.parent.name.split(" - ",1)[0])
             address=vals.get("Address","")
             condition_code=vals.get("Condition Code","")
@@ -219,6 +222,11 @@ def ju_points(job):
             done=(_ju_state(info.parent)=="COMPLETE")
             out.append({"ju":ju,"address":address,"lat":lat,"lon":lon,"done":done,
                         "condition_code":condition_code,"condition_desc":condition_desc,"inspection":inspection})
+            if include_record:
+                from job_records import _parse_record
+                with RECORD_LOCK:
+                    rec=_parse_record(info.parent/'BILLING_AND_NOTES.txt')
+                    out[-1].update(status=rec['status'],billing=rec['billing'],note=read_note(info.parent))
         except Exception:
             pass
     return out
@@ -309,10 +317,18 @@ def optimized_route(job):
     return plan
 
 def route40(job):
-    # Sliding window over the persistent route: completed stops drop out and
-    # the next unfinished stop is pulled in. The remaining route never reshuffles.
-    plan=optimized_route(job)
+    # A manually pinned field route takes priority. Completed stops disappear
+    # from the window, but the remaining stops never reshuffle.
+    pinned=_time_dir(job)/"ACTIVE_ROUTE_40.json"
     current={x["ju"]:x for x in ju_points(job)}
+    if pinned.exists():
+        try:
+            saved=json.loads(pinned.read_text())
+            return [current[str(x["ju"])] for x in saved
+                    if str(x.get("ju","")) in current and not current[str(x["ju"])]["done"]][:40]
+        except Exception as e:
+            print("PINNED ROUTE ERROR:",e,flush=True)
+    plan=optimized_route(job)
     unfinished=[current[x["ju"]] for x in plan if x["ju"] in current and not current[x["ju"]]["done"]]
     return unfinished[:40]
 
@@ -377,15 +393,31 @@ def save_closeout(job,ju,close,codes,note):
     elif close=='PENDING':codes=[]
     # One authoritative current closeout per JU; prevents accidental duplicate submissions.
     record=folder/'BILLING_AND_NOTES.txt'
+    from job_records import _parse_record, CLOSE_RULES
+    from central_time import CENTRAL
+    previous = _parse_record(record)
+    was_complete = CLOSE_RULES.get(previous['status'], (None, None))[1] == 'COMPLETE'
+    completed = previous.get('completed_at', '') if was_complete else ''
+    if close != 'PENDING' and not was_complete:
+        completed = datetime.now(CENTRAL).isoformat(timespec='seconds')
+    if close == 'PENDING': completed = ''
     with record.open('w') as f:
+        if completed: f.write('COMPLETED_AT: ' + completed + '\n')
         f.write('\n'+'='*50+f'\nJU: {ju}\n\nPHOTOS:\n'+''.join(f'- {x.name}\n' for x in photos)+f'\nSTATUS: {close}\n\nBILLING:\n')
         f.write(''.join(f'{c} x{q}\n' for c,q in codes) if codes else 'No billing codes entered\n')
         f.write('\nNOTES:\n'+(note.strip() or ('Pole transfer completed.' if close=='FIBER TRANSFER COMPLETED' else close.title()))+'\n')
     sync_job(JOBS/job);return True,'Saved'
 
-def map_page():
-    js=jobs(); selected=active_job or (js[0] if js else "")
-    points=ju_points(selected) if selected else []
+def map_record(job, ju):
+    record=record_data(globals(),job,ju)
+    return {"done":record["state"]=="COMPLETE", "status":record["status"],
+            "billing":record["billing"], "note":record["note"]}
+
+
+def map_page(job=None):
+    js=jobs(); selected=job or active_job or (js[0] if js else "")
+    if selected and selected not in js: raise ValueError("Job not found")
+    points=ju_points(selected,include_record=True) if selected else []
     route=route40(selected) if selected else []
     invoice=invoice_summary(JOBS/selected) if selected else {"total":"0", "work":"0", "trip":"0", "unpriced":{}}
     data=json.dumps(points).replace("</","<\\/")
@@ -393,11 +425,11 @@ def map_page():
     return f"""<!doctype html><html><head><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>DEVCO Map</title>
 <link rel="stylesheet" href="/static/leaflet.css">
-<style>html,body,#map{{height:100%;margin:0}}body{{font-family:system-ui}}#bar{{position:absolute;z-index:1000;top:10px;left:10px;right:10px;background:#071019ee;padding:12px;border-radius:16px;border:1px solid #314653;box-shadow:0 8px 24px #0008;color:white;display:flex;gap:8px;align-items:center}}#bar a{{color:white;text-decoration:none;background:#26384b;padding:10px 12px;border-radius:10px}}#bar span{{flex:1}}.nav,.activate{{display:inline-block;padding:9px 12px;background:#36c275;color:#07140d!important;border-radius:9px;text-decoration:none;font-weight:700;border:0;margin:3px}}.activate{{background:#168cff;color:white!important}}</style></head>
-<body><div id="bar"><div style="display:grid;gap:8px"><a href="/">← Field</a><a href="/packet?job={html.escape(selected)}" style="background:#4cdd92;color:#06180e;font-weight:700">Job packet</a></div><span><b>{html.escape(selected)}</b> · {len(points)} JUs · <b>{len(route)}-STOP OPTIMIZED ROUTE</b> · <b>GPS/OFFLINE READY</b><br><b style="color:#4cdd92;font-size:22px">Invoice total: <span id="invoice-total">${float(invoice["total"]):,.2f}</span></b><br><small id="invoice-detail">Work ${float(invoice["work"]):,.2f} · Trip charges ${float(invoice["trip"]):,.2f}</small><small id="invoice-warning" style="display:block;color:#ffc26c">{"Unpriced codes excluded — review billing" if invoice["unpriced"] else ""}</small></span></div><div id="map"></div>
-<script src="/static/leaflet.js"></script><script>
+<style>html,body,#map{{height:100%;margin:0}}body{{font-family:system-ui}}#bar{{position:absolute;z-index:1000;top:10px;left:10px;right:10px;background:#071019ee;padding:12px;border-radius:16px;border:1px solid #314653;box-shadow:0 8px 24px #0008;color:white;display:flex;gap:8px;align-items:center}}#bar a{{color:white;text-decoration:none;background:#26384b;padding:10px 12px;border-radius:10px}}#bar span{{flex:1}}.nav,.activate{{display:inline-block;padding:9px 12px;background:#36c275;color:#07140d!important;border-radius:9px;text-decoration:none;font-weight:700;border:0;margin:3px}}.activate{{background:#168cff;color:white!important}}.ju-popup{{font-size:15px;line-height:1.4;overflow-wrap:anywhere}}.ju-popup>strong{{font-size:20px}}.ju-popup-field{{margin:10px 0}}.ju-popup-field>div{{white-space:pre-wrap}}.ju-popup-actions{{display:flex;flex-wrap:wrap}}.ju-popup small{{display:block;margin-top:6px}}.leaflet-control-zoom{{margin-top:190px!important}}</style></head>
+<body><div id="bar"><div style="display:grid;gap:8px"><a href="/">← Field</a><a href="/daily-export?job={html.escape(selected)}" style="background:#4cdd92;color:#06180e;font-weight:700">Export by day</a><a href="/packet?job={html.escape(selected)}" style="background:#4cdd92;color:#06180e;font-weight:700">Job packet</a></div><span><b>{html.escape(selected)}</b> · {len(points)} JUs · <b>{len(route)}-STOP OPTIMIZED ROUTE</b> · <b>GPS/OFFLINE READY</b><br><b style="color:#4cdd92;font-size:22px">Invoice total: <span id="invoice-total">${float(invoice["total"]):,.2f}</span></b><br><small id="invoice-detail">Work ${float(invoice["work"]):,.2f} · Trip charges ${float(invoice["trip"]):,.2f}</small><small id="invoice-warning" style="display:block;color:#ffc26c">{"Unpriced codes excluded — review billing" if invoice["unpriced"] else ""}</small></span></div><div id="map"></div>
+<script src="/static/leaflet.js"></script><script src="/static/map-ui.js"></script><script>
 const pts={data}; const route={route_data}; const map=L.map('map');
-const invoiceJob={json.dumps(selected)};
+const invoiceJob={json.dumps(selected).replace('</','<'+chr(92)+'/')};
 const money=new Intl.NumberFormat('en-US',{{style:'currency',currency:'USD'}});
 let invoiceBusy=false;
 async function refreshInvoice(){{
@@ -420,26 +452,26 @@ if(route.length){{
   const line=route.map(r=>[r.lat,r.lon]);
   L.polyline(line,{{color:'#20e66b',weight:5,opacity:.85}}).addTo(map);
   route.forEach((r,i)=>{{
-    let rm=L.marker([r.lat,r.lon],{{icon:L.divIcon({{className:'',html:'<div style="width:30px;height:30px;border-radius:50%;background:#071019;color:#20e66b;border:2px solid #20e66b;display:grid;place-items:center;font:900 12px system-ui;box-shadow:0 2px 8px #000;cursor:pointer">'+(i+1)+'</div>',iconSize:[30,30],iconAnchor:[15,15]}})}}).addTo(map);
+    let rm=L.marker([r.lat,r.lon],{{icon:L.divIcon({{className:'',html:'<div style="width:30px;height:30px;border-radius:50%;background:#071019;color:#20e66b;border:2px solid #20e66b;display:grid;place-items:center;font:900 12px system-ui;box-shadow:0 2px 8px #000;cursor:pointer">'+(i+1)+'</div>',iconSize:[30,30],iconAnchor:[15,15]}}),bubblingMouseEvents:false}}).addTo(map);
     rm.bindTooltip('Stop '+(i+1)+' · JU '+r.ju);
-    rm.bindPopup('<b>Route Stop '+(i+1)+'</b><br>JU '+r.ju+'<br>'+r.address+'<br><b>'+((r.condition_code||'NO CODE'))+'</b><br>'+((r.condition_desc||''))+'<br><br><form method="post" action="/activate" style="display:inline"><input type="hidden" name="ju" value="'+r.ju+'"><button class="activate">Make Active JU</button></form><a class="nav" href="/nav?lat='+r.lat+'&lon='+r.lon+'&ju='+encodeURIComponent(r.ju)+'">Navigate</a>');
+    attachJuPin(rm,pts.find(p=>p.ju===r.ju)||r,invoiceJob,i+1);
   }});
 }}
-pts.forEach(p=>{{let m=L.circleMarker([p.lat,p.lon],{{radius:p.done?7:9,color:p.done?'#6b7b88':'#e53935',fillColor:p.done?'#6b7b88':'#ff3b30',fillOpacity:.9,weight:3}}).addTo(map);
-m.bindPopup('<b>JU '+p.ju+'</b><br>'+p.address+'<br><b>'+(p.done?'COMPLETED':'NOT COMPLETE')+'</b><br><b>'+(p.condition_code||'NO CODE')+'</b><br>'+(p.condition_desc||'')+'<br><br><form method="post" action="/activate" style="display:inline"><input type="hidden" name="ju" value="'+p.ju+'"><button class="activate">Make Active JU</button></form><a class="nav" href="/nav?lat='+p.lat+'&lon='+p.lon+'&ju='+encodeURIComponent(p.ju)+'">Navigate</a>'); bounds.push([p.lat,p.lon]);}});
+pts.forEach(p=>{{let m=L.circleMarker([p.lat,p.lon],{{radius:p.done?11:13,color:p.done?'#6b7b88':'#e53935',fillColor:p.done?'#6b7b88':'#ff3b30',fillOpacity:.9,weight:3,bubblingMouseEvents:false}}).addTo(map);
+attachJuPin(m,p,invoiceJob); bounds.push([p.lat,p.lon]);}});
 // Start with a useful fallback while GPS acquires instead of fitting all 298 JUs.
 if(route.length) map.setView([route[0].lat,route[0].lon],16);
 else if(bounds.length) map.setView(bounds[0],16);
 else map.setView([41.6,-93.6],16);
 let centeredOnMe=false;
+map.on('dragstart zoomstart popupopen',()=>{{centeredOnMe=true;}});
 if(navigator.geolocation) navigator.geolocation.watchPosition(x=>{{
   let q=[x.coords.latitude,x.coords.longitude];
   if(window.me) window.me.setLatLng(q); else window.me=L.circleMarker(q,{{radius:9,color:'#168cff',fillColor:'#168cff',fillOpacity:1,weight:3}}).addTo(map).bindPopup('You are here');
   // On opening the map, jump to the worker and use pole-level zoom.
   // Keep following position without stealing the map after the user pans/zooms.
   if(!centeredOnMe){{ map.setView(q,18); centeredOnMe=true; }}
-  fetch('/gps-nearest?lat='+q[0]+'&lon='+q[1]+'&accuracy='+(x.coords.accuracy||999),{{cache:'no-store'}})
-    .then(r=>r.json()).then(d=>{{if(d.switched) location.href='/';}}).catch(()=>{{}});
+  // Browsing pins must not change the active JU or leave the map.
 }},()=>{{}},{{enableHighAccuracy:true,maximumAge:0,timeout:10000}});
 </script></body></html>"""
 
@@ -448,16 +480,19 @@ def active_card():
         return '<div class="card"><div class="muted">ACTIVE JU</div><div class="big">None selected</div><p class="muted">Open the map and tap a JU to make it active.</p></div>'
     match=next((x for x in ju_points(active_job) if x["ju"]==active_ju),None)
     if not match: return ''
-    nav=f'https://www.google.com/maps/dir/?api=1&destination={match["lat"]},{match["lon"]}&travelmode=driving'
+    nav=html.escape(ju_url("/navigate",active_job,match["ju"]))
     state='COMPLETED' if match["done"] else 'NOT COMPLETE'
     return f'<div class="card"><div class="muted">ACTIVE JU</div><div class="big">{html.escape(match["ju"])}</div><p>{html.escape(match["address"])}</p><p><b>{state}</b></p><a href="/hone" style="display:block;text-align:center;background:#168cff;color:white;text-decoration:none;font-weight:800;padding:16px;border-radius:12px;margin-bottom:9px">🎯 Hone In to JU</a><a href="{nav}" style="display:block;text-align:center;background:#36c275;color:#07140d;text-decoration:none;font-weight:800;padding:14px;border-radius:12px">Road Navigation</a></div>'
 
-def hone_page():
-    if not active_job or not active_ju:
+def hone_page(job=None, ju=None):
+    job=job or active_job; ju=ju or active_ju
+    if not job or not ju:
         return '<html><body style="font-family:system-ui;background:#0b1118;color:white;padding:25px"><h2>No active JU</h2><a style="color:#6cf" href="/map">Select one from the map</a></body></html>'
-    q=next((x for x in ju_points(active_job) if x["ju"]==active_ju),None)
+    navigation_target(globals(),job,ju)
+    q=next((x for x in ju_points(job) if x["ju"]==ju),None)
     if not q: return '<html><body>JU not found.</body></html>'
-    data=json.dumps(q)
+    data=json.dumps(q).replace("</","<\\/")
+    can_time=(job,ju)==(active_job,active_ju)
     return f"""<!doctype html><html><head><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1"><title>Hone to JU</title>
 <style>html,body{{margin:0;height:100%;background:#071019;color:white;font-family:system-ui;overflow:hidden}}#top{{position:absolute;z-index:2;top:0;left:0;right:0;padding:14px;text-align:center;background:#071019dd}}#ju{{font-size:18px;font-weight:800}}#dist{{font-size:54px;font-weight:900;line-height:1}}#accuracy{{color:#9fb0c0;font-size:13px}}#stage{{height:100%;display:flex;align-items:center;justify-content:center;flex-direction:column}}#arrow{{width:0;height:0;border-left:72px solid transparent;border-right:72px solid transparent;border-bottom:185px solid #20e66b;transform-origin:50% 58%;filter:drop-shadow(0 0 18px #20e66b88)}}#bearing{{font-size:20px;font-weight:700;margin-top:20px}}#msg{{font-size:18px;text-align:center;padding:12px;max-width:90%}}#back{{position:absolute;z-index:3;left:12px;top:12px;color:white;text-decoration:none;background:#26384b;padding:9px 12px;border-radius:10px}}.hit #arrow{{font-size:120px}}.hit #dist{{font-size:65px}}</style></head>
 <body><a id="back" href="/">←</a><div id="top"><div id="ju">JU {html.escape(q["ju"])} · {html.escape(q["address"])}</div><div style="margin:6px auto;max-width:92%;padding:7px 10px;border-radius:9px;background:#132630;border:1px solid #315064"><b style="color:#20e66b">{html.escape(q.get("condition_code","") or "NO CODE")}</b><div style="font-size:12px;margin-top:2px">{html.escape(q.get("condition_desc","") or "No work description supplied")}</div></div><div id="dist">-- m</div><div id="accuracy">Waiting for GPS…</div></div>
@@ -468,8 +503,8 @@ function rad(x){{return x*Math.PI/180}} function deg(x){{return x*180/Math.PI}}
 function distance(a,b,c,d){{let R=6371000,p1=rad(a),p2=rad(c),dp=rad(c-a),dl=rad(d-b);let x=Math.sin(dp/2)**2+Math.cos(p1)*Math.cos(p2)*Math.sin(dl/2)**2;return 2*R*Math.atan2(Math.sqrt(x),Math.sqrt(1-x));}}
 function bearing(a,b,c,d){{let p1=rad(a),p2=rad(c),dl=rad(d-b);return (deg(Math.atan2(Math.sin(dl)*Math.cos(p2),Math.cos(p1)*Math.sin(p2)-Math.sin(p1)*Math.cos(p2)*Math.cos(dl)))+360)%360;}}
 function render(pos){{let lat=pos.coords.latitude,lon=pos.coords.longitude;
-fetch('/gps-nearest?lat='+lat+'&lon='+lon+'&accuracy='+(pos.coords.accuracy||999),{{cache:'no-store'}}).then(r=>r.json()).then(x=>{{if(x.switched) location.href='/';}}).catch(()=>{{}});
-let d=distance(lat,lon,target.lat,target.lon),br=bearing(lat,lon,target.lat,target.lon);document.getElementById('dist').textContent=d<100?d.toFixed(1)+' m':Math.round(d)+' m';document.getElementById('accuracy').textContent='GPS accuracy ±'+Math.round(pos.coords.accuracy)+' m';let h=heading;if(h==null && pos.coords.heading!=null && !isNaN(pos.coords.heading))h=pos.coords.heading;if(h==null && last) h=bearing(last[0],last[1],lat,lon);if(h!=null){{let turn=((br-h+540)%360)-180;document.getElementById('arrow').style.transform='rotate('+turn+'deg)';document.getElementById('bearing').textContent=Math.abs(turn)<15?'Straight ahead':(turn>0?'Turn right':'Turn left');}} last=[lat,lon];if(d<=15 && pos.coords.accuracy<=25 && !window.workStarted){{window.workStarted=true;fetch('/timer',{{method:'POST',headers:{{'Content-Type':'application/x-www-form-urlencoded'}},body:'action=work'}}).catch(()=>{{}});}} if(d<=3){{document.body.classList.add('hit');document.getElementById('arrow').style.border='5px solid #20e66b';document.getElementById('arrow').style.borderRadius='50%';document.getElementById('arrow').style.width='110px';document.getElementById('arrow').style.height='110px';document.getElementById('arrow').style.transform='none';document.getElementById('bearing').textContent='TARGET — WITHIN 3 METERS';document.getElementById('msg').textContent='You are at the JU coordinate. GPS accuracy can be larger than the remaining distance.';}}}}
+// Target stays pinned to the JU opened, regardless of automatic field selection.
+let d=distance(lat,lon,target.lat,target.lon),br=bearing(lat,lon,target.lat,target.lon);document.getElementById('dist').textContent=d<100?d.toFixed(1)+' m':Math.round(d)+' m';document.getElementById('accuracy').textContent='GPS accuracy ±'+Math.round(pos.coords.accuracy)+' m';let h=heading;if(h==null && pos.coords.heading!=null && !isNaN(pos.coords.heading))h=pos.coords.heading;if(h==null && last) h=bearing(last[0],last[1],lat,lon);if(h!=null){{let turn=((br-h+540)%360)-180;document.getElementById('arrow').style.transform='rotate('+turn+'deg)';document.getElementById('bearing').textContent=Math.abs(turn)<15?'Straight ahead':(turn>0?'Turn right':'Turn left');}} last=[lat,lon];if({str(can_time).lower()} && d<=15 && pos.coords.accuracy<=25 && !window.workStarted){{window.workStarted=true;fetch('/timer',{{method:'POST',headers:{{'Content-Type':'application/x-www-form-urlencoded'}},body:new URLSearchParams({{action:'work',job:{json.dumps(job)},ju:{json.dumps(ju)}}})}}).catch(()=>{{}});}} if(d<=3){{document.body.classList.add('hit');document.getElementById('arrow').style.border='5px solid #20e66b';document.getElementById('arrow').style.borderRadius='50%';document.getElementById('arrow').style.width='110px';document.getElementById('arrow').style.height='110px';document.getElementById('arrow').style.transform='none';document.getElementById('bearing').textContent='TARGET — WITHIN 3 METERS';document.getElementById('msg').textContent='You are at the JU coordinate. GPS accuracy can be larger than the remaining distance.';}}}}
 if(window.DeviceOrientationEvent) window.addEventListener('deviceorientationabsolute',e=>{{if(e.alpha!=null)heading=(360-e.alpha)%360;}},true);
 navigator.geolocation.watchPosition(render,e=>{{document.getElementById('msg').textContent='Location unavailable: '+e.message;}},{{enableHighAccuracy:true,maximumAge:0,timeout:10000}});
 </script></body></html>"""
@@ -483,9 +518,9 @@ def legacy_page(msg=""):
     opts=''.join(f'<option value="{html.escape(j)}" {"selected" if j==selected else ""}>{html.escape(j)}</option>' for j in js)
     active=next((x for x in ju_points(selected) if x["ju"]==active_ju),None) if active_ju and selected else None
     if active:
-        nav=f'https://www.google.com/maps/dir/?api=1&destination={active["lat"]},{active["lon"]}&travelmode=driving'
+        nav=html.escape(ju_url("/navigate",selected,active["ju"]))
         jt=ju_times(selected,active["ju"])
-        active_html=f'<section class="hero"><div class="eyebrow">ACTIVE JU</div><div class="ju">{html.escape(active["ju"])}</div><div class="addr">📍 {html.escape(active["address"])}</div><div style="background:#162630;border:1px solid #3c5968;border-radius:12px;padding:12px;margin:10px 0"><div class="eyebrow">WORK ORDER — WHAT TO DO</div><div style="font-size:20px;font-weight:950;color:#20e66b;margin:4px 0">{html.escape(active.get("condition_code","") or "No condition code")}</div><div style="font-size:14px;line-height:1.35">{html.escape(active.get("condition_desc","") or "No work description supplied")}</div><div class="eyebrow" style="margin-top:7px">INSPECTION {html.escape(active.get("inspection","") or "—")}</div></div><div class="pill">{"✓ COMPLETED" if active["done"] else "● INCOMPLETE"} · {len(list((_ju_folder(selected,active["ju"])/"photos").glob("*"))) if _ju_folder(selected,active["ju"]) and (_ju_folder(selected,active["ju"])/"photos").exists() else 0} PHOTOS</div><div class="jutimes"><span>🚙 Drive {fmt_time(jt["Drive"])}</span><span>🛠 Work {fmt_time(jt["Work"])}</span></div><div class="actions"><a class="primary" href="/hone">⌖ Hone In</a><a class="secondary" href="/nav?lat={active["lat"]}&lon={active["lon"]}&ju={html.escape(active["ju"])}">➤ Google Maps</a></div><a class="primary wide" href="/billing" style="margin-top:9px">✓ Finish JU / Billing</a><a class="secondary wide" href="/camera" style="margin-top:9px">▣ Take Solocator Photo</a><a class="secondary wide" href="/map" style="margin-top:9px">◈ Show Route 40</a></section>'
+        active_html=f'<section class="hero"><div class="eyebrow">ACTIVE JU</div><div class="ju">{html.escape(active["ju"])}</div><div class="addr">📍 {html.escape(active["address"])}</div><div style="background:#162630;border:1px solid #3c5968;border-radius:12px;padding:12px;margin:10px 0"><div class="eyebrow">WORK ORDER — WHAT TO DO</div><div style="font-size:20px;font-weight:950;color:#20e66b;margin:4px 0">{html.escape(active.get("condition_code","") or "No condition code")}</div><div style="font-size:14px;line-height:1.35">{html.escape(active.get("condition_desc","") or "No work description supplied")}</div><div class="eyebrow" style="margin-top:7px">INSPECTION {html.escape(active.get("inspection","") or "—")}</div></div><div class="pill">{"✓ COMPLETED" if active["done"] else "● INCOMPLETE"} · {len(list((_ju_folder(selected,active["ju"])/"photos").glob("*"))) if _ju_folder(selected,active["ju"]) and (_ju_folder(selected,active["ju"])/"photos").exists() else 0} PHOTOS</div><div class="jutimes"><span>🚙 Drive {fmt_time(jt["Drive"])}</span><span>🛠 Work {fmt_time(jt["Work"])}</span></div><div class="actions"><a class="primary" href="/hone">⌖ Hone In</a><a class="secondary" href="{nav}">➤ Google Maps</a></div><a class="primary wide" href="/billing" style="margin-top:9px">✓ Finish JU / Billing</a><a class="secondary wide" href="/camera" style="margin-top:9px">▣ Take Solocator Photo</a><a class="secondary wide" href="/map" style="margin-top:9px">◈ Show Route 40</a></section>'
     else: active_html='<section class="hero"><div class="eyebrow">ACTIVE JU</div><div class="ju">No JU selected</div><div class="addr">Open the map and choose a pole to begin.</div><a class="primary wide" href="/map">Open Job Map</a></section>'
     timer_label=(tstate.get("category") or "Stopped") + ((" · JU "+tstate.get("ju","")) if tstate.get("ju") else "")
     timer_html=f"""<div class="timerpanel"><div class="timerhead"><div><div class="eyebrow">DAILY TIME</div><b>{html.escape(timer_label)}</b></div><div class="liveclock" id="liveclock">{fmt_time(tstate.get("elapsed",0)) if tstate.get("running") else fmt_time(sum(daily.values()))}</div></div><div class="cats"><div class="cat">DRIVE<b>{fmt_time(daily["Drive"])}</b></div><div class="cat">WORK<b>{fmt_time(daily["Work"])}</b></div><div class="cat">BREAK<b>{fmt_time(daily["Break"])}</b></div><div class="cat">OTHER<b>{fmt_time(daily["Other"])}</b></div></div><div class="timerbuttons"><form method="post" action="/timer"><input type="hidden" name="action" value="drive"><button>🚙 Drive</button></form><form method="post" action="/timer"><input type="hidden" name="action" value="work"><button class="work">🛠 Work</button></form><form method="post" action="/timer"><input type="hidden" name="action" value="break"><button class="break">☕ Break</button></form><form method="post" action="/timer"><input type="hidden" name="action" value="stop"><button>■ Stop</button></form></div></div>"""
@@ -520,6 +555,8 @@ class H(BaseHTTPRequestHandler):
     def do_GET(self):
         global active_job, active_ju
         path=urlparse(self.path).path
+        from tracking_http import get as tracking_get
+        if tracking_get(self,globals(),path): return
         if path in ('/packet', '/packet-ju', '/packet-sheet', '/packet-file'):
             q=parse_qs(urlparse(self.path).query)
             job=q.get('job',[active_job or ''])[0]
@@ -559,6 +596,15 @@ class H(BaseHTTPRequestHandler):
                 self.reply(photo.read_bytes(),IMAGE_TYPES[photo.suffix.lower()]); return
             except ValueError as error:
                 self.reply(html.escape(str(error)),status=404); return
+        if path == "/map-record":
+            q=parse_qs(urlparse(self.path).query)
+            try:
+                self.reply(json.dumps(map_record(q.get('job',[''])[0],q.get('ju',[''])[0])),'application/json')
+            except ValueError as error:
+                self.reply(json.dumps({'error':str(error)}),'application/json',status=404)
+            return
+        if path == "/static/map-ui.js":
+            self.reply((ROOT/"SYSTEM"/"map_ui.js").read_text(),"application/javascript"); return
         if path == "/static/voice-closeout.js":
             self.reply((ROOT/"SYSTEM"/"voice_closeout.js").read_text(),"application/javascript"); return
         if path == "/health":
@@ -629,18 +675,29 @@ class H(BaseHTTPRequestHandler):
             except Exception as e:
                 b=json.dumps({"ok":False,"error":str(e)}).encode()
                 self.send_response(400); self.send_header("Content-Type","application/json"); self.send_header("Content-Length",str(len(b))); self.end_headers(); self.wfile.write(b); return
-        if path == "/nav":
+        if path in ("/navigate", "/nav"):
             q=parse_qs(urlparse(self.path).query)
-            lat=q.get("lat",[""])[0]; lon=q.get("lon",[""])[0]
-            launch_google_maps(lat,lon,q.get("ju",[""])[0])
-            self.send_response(303); self.send_header("Location","/map"); self.end_headers(); return
-        if path == "/map":
-            b=map_page().encode(); self.send_response(200); self.send_header("Content-Type","text/html; charset=utf-8"); self.send_header("Content-Length",str(len(b))); self.end_headers(); self.wfile.write(b)
-        elif urlparse(self.path).path == "/hone":
-            b=hone_page().encode(); self.send_response(200); self.send_header("Content-Type","text/html; charset=utf-8"); self.send_header("Content-Length",str(len(b))); self.end_headers(); self.wfile.write(b)
+            try:
+                # Ignore stale link coordinates. New links always pin both identities.
+                job=q.get("job",[active_job or ""])[0]; ju=q.get("ju",[""])[0]
+                point=navigation_target(globals(),job,ju)
+            except ValueError as error:
+                self.reply('<h2>Navigation unavailable</h2><p>'+html.escape(str(error))+'</p><a href="/map">Return to map</a>',status=400); return
+            # Existing Android WebView hands Maps URLs to the foreground Maps app.
+            self.send_response(303); self.send_header("Location",maps_url(point))
+            self.send_header("Cache-Control","no-store"); self.end_headers(); return
+        if path in ("/map", "/hone"):
+            q=parse_qs(urlparse(self.path).query)
+            try:
+                body=map_page(q.get("job",[None])[0]) if path=="/map" else hone_page(q.get("job",[None])[0],q.get("ju",[None])[0])
+                self.reply(body)
+            except ValueError as error:
+                self.reply(html.escape(str(error)),status=400)
         else: self.send()
     def do_POST(self):
         global active_job, field_proc, field_mode, active_ju
+        from tracking_http import post as tracking_post
+        if tracking_post(self,globals()): return
         if self.path in ('/voice-note','/voice-close'):
             from voice_workflow import save_voice_note,match_close
             try:
@@ -723,15 +780,18 @@ class H(BaseHTTPRequestHandler):
             if j in jobs(): active_job=j; active_ju=None; save_app_state()
             msg='Job selected.'
         elif self.path=='/activate':
-            j=data.get('ju',[''])[0]
-            valid={x['ju'] for x in ju_points(active_job)} if active_job else set()
+            j=data.get('ju',[''])[0]; job=data.get('job',[active_job or ''])[0]
+            valid={x['ju'] for x in ju_points(job)} if job in jobs() else set()
             if j in valid:
-                active_ju=j; save_app_state()
+                if active_job and job!=active_job: stop_timer(active_job)
+                active_job=job; active_ju=j; save_app_state()
                 start_timer(active_job,"Drive",j)
                 self.send_response(303); self.send_header('Location','/'); self.end_headers(); return
             msg='JU not found.'
         elif self.path=='/timer':
             action=data.get('action',[''])[0].lower()
+            if ('job' in data or 'ju' in data) and (data.get('job',[''])[0],data.get('ju',[''])[0])!=(active_job,active_ju):
+                self.reply('The active JU changed. Timer was not changed.',status=409); return
             if not active_job: msg='Select a job first.'
             elif action=='stop': stop_timer(active_job); msg='Timer stopped.'
             elif action in ('drive','work','break','other'):
@@ -758,6 +818,8 @@ if __name__=='__main__':
         fcntl.flock(instance_lock,fcntl.LOCK_EX|fcntl.LOCK_NB)
     except BlockingIOError:
         raise SystemExit("DEVCO host is already running")
+    from tracking_export import recover as recover_tracking_exports
+    recover_tracking_exports(ROOT)
     server=ThreadingHTTPServer(('127.0.0.1',8765),H)
     load_app_state()
     threading.Thread(target=photo_watcher,daemon=True,name="solocator-photo-watcher").start()

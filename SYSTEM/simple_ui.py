@@ -1,6 +1,7 @@
 """Single-stop field interface; data stays in the existing job workflow."""
 import html
 import json
+from navigation import ju_url
 from record_editor import photo_panel, photo_items, photo_script, PHOTO_STYLE
 
 def page(app, msg=""):
@@ -17,7 +18,7 @@ def page(app, msg=""):
         gallery = photo_panel(job, ju, photo_items(folder, job, ju))
         active = f"""<section><small>CURRENT POLE</small><h1>JU {esc(ju)}</h1><p>{esc(pole["address"])}</p>
         <p><strong>{esc(pole.get("condition_code",""))}</strong><br>{esc(pole.get("condition_desc",""))}</p>
-        <div class="row"><a href="/nav?lat={pole['lat']}&lon={pole['lon']}&ju={esc(ju)}">Navigate</a><a href="/hone">Find pole</a><a href="/map">Map</a></div>
+        <div class="row"><a href="{esc(ju_url("/navigate",job,ju))}">Navigate</a><a href="{esc(ju_url("/hone",job,ju))}">Find pole</a><a href="/map">Map</a></div>
         <h2>1. Take photos</h2><p><b id="photos">{photos}</b> photos filed under this JU</p>
         {gallery}
         <h2>2. Notes &amp; codes</h2><a class="primary" href="/billing">Review &amp; finish this JU</a>
@@ -31,7 +32,8 @@ def page(app, msg=""):
     identity = json.dumps([job,ju]).replace("</","<\\/")
     return """<!doctype html><html><head><meta name="viewport" content="width=device-width,initial-scale=1"><title>DEVCO Field</title>
 <style>__PHOTO_STYLE__*{box-sizing:border-box}body{margin:0;background:#09131b;color:#edf4f7;font:17px system-ui}main{max-width:620px;margin:auto;padding:18px}header{display:flex;align-items:center;justify-content:space-between}header b{color:#4cdd92}section,details{background:#13232e;border:1px solid #304754;border-radius:14px;padding:18px;margin:15px 0}h1{margin:6px 0;font-size:30px}h2{font-size:19px;margin:24px 0 8px}p{line-height:1.45}small,.muted{color:#a8bdc9}.muted{font-size:14px}a,button{display:block;border:1px solid #456071;border-radius:10px;padding:14px;color:white;background:#203846;text-align:center;text-decoration:none;font:600 16px system-ui;min-height:48px}.primary{background:#4cdd92;color:#06180e;border:0}.row{display:flex;gap:8px}.row>*{flex:1}.notice{padding:12px;border-left:4px solid #f1b866;background:#352b19}select{width:100%;padding:12px;background:#09131b;color:white;font:16px system-ui;margin:12px 0}summary{cursor:pointer;font-weight:600}#connection{font-size:14px;color:#a8bdc9}</style></head><body><main>
-<header><b>DEVCO FIELD</b><a href="/packet">Job packet</a></header><div class="row" style="margin-top:14px"><a href="/">Field</a><a href="/records">JU Files</a><a href="/map">Map</a></div>
+<header><b>DEVCO FIELD</b><a href="/packet">Job packet</a></header><div class="row" style="margin-top:14px"><a href="/">Field</a><a href="/records">JU Files</a><a href="/map">Map</a><a href="/tracking">Records &amp; Pay</a></div>
+<a class="primary" style="margin-top:14px" href="/daily-export">Export completed JUs by day</a>
 <p id="location" role="status">Finding your location…</p><p id="connection">Photo filing connected</p>__MESSAGE____ACTIVE__
 <details><summary>Job &amp; time · __COUNT__ completed</summary><p>Current job: __JOB__</p>
 <form method="post" action="/select"><select name="job">__OPTIONS__</select><button>Switch job</button></form>

@@ -106,8 +106,8 @@ def save_edit(app, job, ju, expected, note, selected):
         atomic_text(history / (datetime.now().strftime('%Y%m%dT%H%M%S%f') + '.json'), json.dumps(before))
         photos = sorted(p.name for p in (folder / 'photos').glob('*') if p.is_file())
         completed = rec.get('completed_at', '')
-        if not completed and recpath.exists() and CLOSE_RULES.get(rec['status'], (None, None))[1] == 'COMPLETE':
-            completed = datetime.fromtimestamp(recpath.stat().st_mtime).isoformat(timespec='seconds')
+        # Editing notes is not a completion event. Older records keep their
+        # original photo-date fallback instead of acquiring a file-edit date.
         content = '\n' + '=' * 50 + f'\nJU: {ju}\n'
         if completed:
             content += f'COMPLETED_AT: {completed}\n'
@@ -194,7 +194,7 @@ def edit_page(app, job, ju):
     record = record_data(app, job, ju)
     esc = html.escape
     seed = json.dumps({**record, 'allowed': list(dict.fromkeys(app['BILLING_CODES'] + ['TRIP CHARGE'] + [c for c, q in record['billing']]))}).replace('</', '<\\/')
-    body = '<a href="/records?' + esc(urlencode({'job': job})) + '">← All JU files</a><section><small>PROJECT ' + esc(job) + '</small><h1>JU ' + esc(ju) + '</h1><p>' + esc(record['address']) + '</p><p class="badge">' + esc(record['status'] or 'NOT COMPLETED') + '</p><h2>Photos</h2>' + photo_panel(job, ju, record['photos'], camera=False) + '</section><section><form id="editor"><label for="notes"><h2>Notes</h2></label><textarea id="notes"></textarea><h2>Billing codes</h2><p class="muted">Add or remove codes and adjust quantities. This saves this JU without changing its completion status or your current field stop.</p><div id="codes"></div><button id="add-code" type="button">+ Add billing code</button><div class="savebar"><p id="save-status" role="status">Saved record loaded</p><button class="primary" type="submit">Save changes</button></div></form><a id="reload-record" href="" hidden>Reopen saved record (your draft stays on this phone)</a><button id="restore-draft" type="button" hidden>Restore my unsaved draft</button></section>'
+    body = '<a href="/map?' + esc(urlencode({'job': job})) + '">← Map</a> · <a href="/records?' + esc(urlencode({'job': job})) + '">← All JU files</a><section><small>PROJECT ' + esc(job) + '</small><h1>JU ' + esc(ju) + '</h1><p>' + esc(record['address']) + '</p><p class="badge">' + esc(record['status'] or 'NOT COMPLETED') + '</p><h2>Photos</h2>' + photo_panel(job, ju, record['photos'], camera=False) + '</section><section><form id="editor"><label for="notes"><h2>Notes</h2></label><textarea id="notes"></textarea><h2>Billing codes</h2><p class="muted">Add or remove codes and adjust quantities. This saves this JU without changing its completion status or your current field stop.</p><div id="codes"></div><button id="add-code" type="button">+ Add billing code</button><div class="savebar"><p id="save-status" role="status">Saved record loaded</p><button class="primary" type="submit">Save changes</button></div></form><a id="reload-record" href="" hidden>Reopen saved record (your draft stays on this phone)</a><button id="restore-draft" type="button" hidden>Restore my unsaved draft</button></section>'
     script = '''<script>
 const initial=__SEED__,form=document.getElementById('editor'),notes=document.getElementById('notes'),codes=document.getElementById('codes'),status=document.getElementById('save-status');
 const draftKey='devco-record:'+initial.job+':'+initial.ju;let revision=initial.revision,dirty=false,saving=false,keptDraft=null;

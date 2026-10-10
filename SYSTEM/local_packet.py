@@ -25,7 +25,7 @@ def shell(title, body, job):
             '<title>' + esc(title) + ' | DEVCO</title><style>' + STYLE + '</style></head><body><main>'
             '<header><strong>DEVCO FIELD</strong><span class="muted">Local job packet</span></header>'
             '<nav style="margin-top:16px"><a class="button" href="' + esc(url('/packet', job=job)) + '">Job packet</a>'
-            '<a class="button" href="/map">Field map</a><a class="button" href="/">Field</a></nav>' + body + '</main></body></html>')
+            '<a class="button" href="/tracking">Records &amp; Pay</a><a class="button" href="/map">Field map</a><a class="button" href="/">Field</a></nav>' + body + '</main></body></html>')
 
 
 def job_root(app, job):
@@ -81,6 +81,7 @@ def packet_page(app, job):
                      '<p class="muted">' + str(r['photos']) + ' photos · Open notes &amp; files</p></a></article>')
     body = '<h1>Job ' + esc(job) + '</h1><p class="muted">Current files saved on this phone. Reopen or refresh to see new work.</p>'
     body += '<div class="stats"><div><b>' + str(len(rows)) + '</b><span>Total JUs</span></div><div><b class="green">' + str(done) + '</b><span>Completed / closed</span></div><div><b class="amber">' + str(len(rows)-done) + '</b><span>Not completed</span></div></div>'
+    body += '<p><a class="button primary" href="' + esc(url('/daily-export', job=job)) + '">Export completed JUs by day</a></p>'
     body += '<p>' + str(photos) + ' photos in JU folders</p><h2>Spreadsheets</h2><div class="grid">' + ''.join(sheets) + '</div>'
     body += '<h2>JU files</h2><div class="row" role="group" aria-label="Filter JUs"><button data-filter="all" aria-pressed="true">All (' + str(len(rows)) + ')</button><button data-filter="complete" aria-pressed="false">Completed (' + str(done) + ')</button><button data-filter="open" aria-pressed="false">Not completed (' + str(len(rows)-done) + ')</button></div>'
     body += '<label for="search" class="muted">Find a JU, address, or note</label><input type="search" id="search" placeholder="Search this job" autocomplete="off"><p id="result-count" class="muted" aria-live="polite"></p><div id="records">' + ''.join(cards) + '</div><p id="empty" hidden>No matching JUs.</p>'
@@ -108,7 +109,7 @@ def ju_page(app, job, ju):
     try:
         lat, lon = float(info.get('Latitude', '')), float(info.get('Longitude', ''))
         if -90 <= lat <= 90 and -180 <= lon <= 180:
-            body += '<a class="button" href="' + esc('https://www.google.com/maps/dir/?' + urlencode({'api': 1, 'destination': f'{lat},{lon}', 'travelmode': 'driving'})) + '">Navigate to pole</a>'
+            body += '<a class="button" href="' + esc(url('/navigate', job=job, ju=ju)) + '">Navigate to pole</a>'
     except ValueError:
         pass
     body += '</div><h2>Photos (' + str(len(photos)) + ')</h2><div class="gallery">'
